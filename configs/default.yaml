@@ -1,0 +1,33 @@
+data:
+  dataset: "DLPFC"
+  sample_id: "151673"         # single slice for prototyping
+  n_top_genes: 3000           # highly variable genes to keep
+  knn_k: 6                    # neighbors for spatial graph
+  train_ratio: 0.6
+  val_ratio: 0.2
+  test_ratio: 0.2
+
+model:
+  embed_dim: 128
+  expression_encoder:
+    hidden_dim: 256
+    n_layers: 2
+    dropout: 0.1
+  spatial_encoder:
+    n_heads: 4
+    n_layers: 2
+    dropout: 0.1
+  fusion:
+    type: "gated"             # "gated" or "cross_attention"
+    n_heads: 4
+    n_layers: 2
+    dropout: 0.1
+
+training:
+  lr: 0.001
+  weight_decay: 0.0001
+  epochs: 200
+  patience: 20
+  seed: 42
+
+device: "auto"

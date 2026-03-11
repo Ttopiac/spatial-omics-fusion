@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Environment
+.env
+*.env
+.venv/
+env/
+
+# Data (raw and processed are large)
+data/raw/
+data/processed/
+
+# Results, checkpoints, and model weights
+results/**
+!results/.gitkeep
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.h5ad
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Weights & Biases
+wandb/
+
+# Markdown (except CLAUDE.md and README.md)
+*.md
+!CLAUDE.md
+!README.md
