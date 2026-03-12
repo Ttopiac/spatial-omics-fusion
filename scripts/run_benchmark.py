@@ -41,6 +41,9 @@ EXPERIMENTS = [
     ("concat", "gated"),
     ("full", "gated"),
     ("full", "cross_attention"),
+    ("scgpt_only", "gated"),
+    ("scgpt", "gated"),
+    ("scgpt", "cross_attention"),
 ]
 
 
@@ -60,12 +63,14 @@ def run_single(sample_id, mode, fusion_type, cfg, device):
             knn_k=cfg["data"]["knn_k"],
         )
 
-    # Load data
+    # Load data (with scGPT embeddings if needed)
+    use_scgpt = mode in ("scgpt", "scgpt_only")
     data = load_dlpfc_data(
         sample_id,
         train_ratio=cfg["data"]["train_ratio"],
         val_ratio=cfg["data"]["val_ratio"],
         seed=seed,
+        load_scgpt=use_scgpt,
     )
 
     # Create model

@@ -44,11 +44,16 @@ class Trainer:
         self.patience_counter = 0
         self.history = []
 
+    def _forward(self):
+        """Forward pass with optional scGPT embeddings."""
+        scgpt_embed = getattr(self.data, "scgpt_embeddings", None)
+        return self.model(self.data.x, self.data.edge_index, scgpt_embeddings=scgpt_embed)
+
     def train_epoch(self):
         self.model.train()
         self.optimizer.zero_grad()
 
-        logits, _ = self.model(self.data.x, self.data.edge_index)
+        logits, _ = self._forward()
         loss = self.criterion(
             logits[self.data.train_mask], self.data.y[self.data.train_mask]
         )
@@ -59,7 +64,7 @@ class Trainer:
     @torch.no_grad()
     def evaluate(self, mask):
         self.model.eval()
-        logits, embeddings = self.model(self.data.x, self.data.edge_index)
+        logits, embeddings = self._forward()
         preds = logits[mask].argmax(dim=-1).cpu().numpy()
         true = self.data.y[mask].cpu().numpy()
         loss = self.criterion(logits[mask], self.data.y[mask]).item()
