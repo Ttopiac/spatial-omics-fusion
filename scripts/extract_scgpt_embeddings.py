@@ -242,7 +242,7 @@ def preprocess_for_scgpt(adata, vocab, max_seq_len=1200, pad_value=-2):
 
 
 @torch.no_grad()
-def extract_embeddings(model, gene_ids, values, device, batch_size=64):
+def extract_embeddings(model, gene_ids, values, device, batch_size=64, pad_value=-2):
     """Extract cell embeddings from scGPT model."""
     n_cells = gene_ids.shape[0]
     all_embeddings = []
@@ -254,7 +254,7 @@ def extract_embeddings(model, gene_ids, values, device, batch_size=64):
 
         # Forward pass through scGPT
         # The model's _encode method returns transformer output embeddings
-        src_key_padding_mask = batch_values.eq(model.pad_value)
+        src_key_padding_mask = batch_values.eq(pad_value)
 
         # Get embeddings from the encoder
         output = model._encode(
