@@ -9,13 +9,22 @@ Achieves **0.926 ARI** on the DLPFC benchmark (12 slices) with only **1.1M param
 ```
 Gene Expression (3000 dims)
         │
-   MLP Encoder ──→ Expression Embedding (128)
-        │                      │
-        │               GAT Encoder ──→ Spatial Embedding (128)
-        │                                       │
-        └──────── Cross-Attention Fusion ───────┘
-                          │
-                    Classification Head ──→ Domain Prediction (5-7 classes)
+   MLP Encoder
+        │
+        ▼
+Expression Embedding (128) ───────────────────────┐
+        │                                          │
+        ▼                                          │
+   GAT Encoder (aggregates spatial neighbors)      │
+        │                                          │
+        ▼                                          │
+Spatial Embedding (128)                            │
+        │                                          │
+        ▼                                          ▼
+Cross-Attention Fusion (Q = Expression, K/V = Spatial Neighbors)
+        │
+        ▼
+Classification Head ──→ Domain Prediction (5-7 classes)
 ```
 
 **Expression Encoder**: 2-layer MLP compresses 3,000 highly variable genes into a 128-dim embedding.
