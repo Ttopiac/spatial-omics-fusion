@@ -12,16 +12,18 @@ Gene Expression (3000 dims)
    MLP Encoder
         │
         ▼
-Expression Embedding (128) ──────────────────────────────────────┐
-        │                                                        │
-        ▼                                                        │
-   GAT Encoder (aggregates spatial neighbors)                    │
-        │                                                        │
-        ▼                                                        │
-Spatial Embedding (128)                                          │
-        │                                                        │
-        ▼                                                        ▼
-Cross-Attention Fusion (Q = Expression, K/V = Spatial Neighbors)
+Expression Embedding (128) ────────────────────────┐
+        │                                          │
+        ▼                                          │
+   GAT Encoder (aggregates spatial neighbors)      │
+        │                                          │
+        ▼                                          │
+Spatial Embedding (128)                            │
+        │                                          │
+        ▼                                          │
+Cross-Attention Fusion                             │
+Q = Expression (right path) ◄──────────────────────┘
+K/V = Spatial (left path)
         │
         ▼
 Classification Head ──→ Domain Prediction (5-7 classes)
