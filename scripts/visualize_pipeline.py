@@ -26,6 +26,11 @@ import argparse
 import json
 import os
 import sys
+import warnings
+warnings.filterwarnings("ignore")
+
+import dask
+dask.config.set({"dataframe.query-planning": True})
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
