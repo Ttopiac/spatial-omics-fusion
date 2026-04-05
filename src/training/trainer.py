@@ -63,14 +63,19 @@ class Trainer:
         scgpt_embed = getattr(self.data, "scgpt_embeddings", None)
         image_feat = getattr(self.data, "image_features", None)
         geneformer_embed = getattr(self.data, "geneformer_embeddings", None)
+        kwargs = dict(
+            scgpt_embeddings=scgpt_embed,
+            image_features=image_feat,
+            geneformer_embeddings=geneformer_embed,
+        )
+        # Fine-tune models accept token inputs
         scgpt_tokens = getattr(self.data, "scgpt_tokens", None)
         geneformer_tokens = getattr(self.data, "geneformer_tokens", None)
-        return self.model(self.data.x, self.data.edge_index,
-                          scgpt_embeddings=scgpt_embed,
-                          image_features=image_feat,
-                          geneformer_embeddings=geneformer_embed,
-                          scgpt_tokens=scgpt_tokens,
-                          geneformer_tokens=geneformer_tokens)
+        if scgpt_tokens is not None:
+            kwargs["scgpt_tokens"] = scgpt_tokens
+        if geneformer_tokens is not None:
+            kwargs["geneformer_tokens"] = geneformer_tokens
+        return self.model(self.data.x, self.data.edge_index, **kwargs)
 
     def train_epoch(self):
         self.model.train()

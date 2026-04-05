@@ -81,12 +81,28 @@ All spatial models achieve ~99.8% top-2 accuracy — when the model is "wrong", 
 | **MLP + GAT + Cross-Attention** | **0.998 ± 0.002** | **0.968 ± 0.006** | **0.775 ± 0.045** | **0.114 ± 0.017** |
 | MLP + GAT + Image + Cross-Attention | 0.999 ± 0.001 | 0.968 ± 0.009 | 0.771 ± 0.075 | 0.107 ± 0.026 |
 
+### KNN Neighbor Ablation (single slice 151673, GAT-only)
+
+Graph construction matters more than model architecture. Increasing k from 6 to 12 improves ARI more than adding cross-attention fusion.
+
+| k | Edges | ARI | Interior Acc | Boundary Acc | Time |
+|---|---|---|---|---|---|
+| 4 | 14K | 0.853 | 93.3% | 64.7% | 4.8s |
+| 6 (default) | 22K | 0.896 | 96.2% | 69.7% | 7.1s |
+| 8 | 29K | 0.894 | 95.8% | 80.7% | 8.3s |
+| **12** | **43K** | **0.929** | **98.2%** | **87.6%** | **20.7s** |
+| 18 | 65K | 0.916 | 98.7% | 87.1% | 15.4s |
+| 24 | 87K | 0.914 | 99.6% | 88.6% | 19.7s |
+
+Notably, GAT-only with k=12 (ARI=0.929) outperforms MLP+GAT+Cross-Attention with k=6 (ARI=0.928). Adding cross-attention on top of k=12 actually hurts (ARI=0.895) — with a rich enough neighborhood, the GAT's built-in attention is sufficient and extra fusion complexity leads to overfitting.
+
 **Key findings**:
 - Spatial context is critical: MLP-only → GAT-only improves ARI from 0.36 to 0.92
-- Cross-attention fusion provides the best and most robust performance
-- Foundation models (scGPT, Geneformer) with frozen embeddings underperform task-specific MLP encoding — Geneformer is the strongest foundation model (0.491 ARI with spatial) but still far below GAT-only (0.919). The brain-specific scGPT model does not outperform the whole-human scGPT
-- H&E histology image features (ResNet50) provide marginal improvement over expression alone but cannot replace the spatial graph — low-resolution Visium images (~15 pixels/spot) lack discriminative morphological detail
-- Adding image features to the full model (multimodal) does not improve over the two-modality model — spatial graph already captures neighborhood structure more effectively
+- **Graph construction (choosing k) is a bigger lever than model architecture (fusion strategy)** — GAT-only with k=12 matches our best cross-attention model. The right graph makes complex fusion unnecessary
+- Cross-attention fusion provides the best performance at k=6, but its benefit vanishes with denser graphs (k=12+)
+- k=12 is the sweet spot: ARI peaks, then declines as too-distant neighbors dilute signal. Boundary accuracy continues improving with larger k (more context helps at transitions)
+- Foundation models (scGPT, Geneformer) with frozen embeddings underperform task-specific MLP encoding — Geneformer is the strongest foundation model (0.491 ARI with spatial) but still far below GAT-only (0.919). These models were pretrained on dissociated cells with no spatial structure, which is the fundamental limitation
+- H&E histology image features (ResNet50) provide no additional benefit over the spatial graph — low-resolution Visium images (~15 pixels/spot) lack discriminative morphological detail
 - All spatial models with MLP encoding achieve ~99.8% top-2 accuracy and ~97% interior accuracy — the remaining errors are at domain boundaries where the ground truth itself is ambiguous
 - Boundary accuracy (~78%) represents the annotation noise floor, not model failure — these spots sit at biological transitions between adjacent cortical layers
 
