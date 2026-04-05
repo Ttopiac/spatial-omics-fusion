@@ -93,8 +93,13 @@ class SpatialOmicsFusion(nn.Module):
                 n_heads=gat_heads, n_layers=gat_layers, dropout=dropout,
             )
 
-        # Fusion
-        if mode in ("full", "scgpt", "scgpt_brain", "geneformer", "multimodal", "img_expr", "gcn_full"):
+        # img_expr uses gated fusion (not cross-attention) to avoid leaking spatial graph
+        if mode == "img_expr":
+            from src.models.fusion import GatedFusion
+            self.fusion = GatedFusion(embed_dim=embed_dim, dropout=dropout)
+
+        # Fusion for other modes
+        elif mode in ("full", "scgpt", "scgpt_brain", "geneformer", "multimodal", "gcn_full"):
             self.fusion = get_fusion(
                 fusion_type, embed_dim=embed_dim, n_heads=fusion_heads,
                 n_layers=fusion_layers, dropout=dropout,
