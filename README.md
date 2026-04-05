@@ -57,8 +57,11 @@ Benchmarked across all 12 DLPFC tissue slices (mean ± std):
 | MLP + GAT + Concat (k=6) | 0.917 ± 0.026 | 0.888 ± 0.015 | 0.956 ± 0.011 |
 | MLP + GAT + Gated (k=6) | 0.920 ± 0.027 | 0.890 ± 0.017 | 0.958 ± 0.012 |
 | GAT-only (k=12) | 0.924 ± 0.028 | 0.898 ± 0.018 | 0.960 ± 0.012 |
-| MLP + GAT + Cross-Attention (k=6) | **0.928 ± 0.022** | 0.896 ± 0.011 | 0.960 ± 0.008 |
-| MLP + GAT + Image + Cross-Attention (k=6) | **0.928 ± 0.023** | **0.899 ± 0.014** | **0.961 ± 0.010** |
+| GCN-only (k=6) | 0.922 ± 0.027 | 0.893 ± 0.017 | 0.959 ± 0.011 |
+| GCN-only (k=12) | 0.931 ± 0.025 | 0.898 ± 0.018 | 0.960 ± 0.012 |
+| GCN-only (k=24) | **0.932 ± 0.025** | **0.924 ± 0.018** | **0.968 ± 0.013** |
+| MLP + GAT + Cross-Attention (k=6) | 0.928 ± 0.022 | 0.896 ± 0.011 | 0.960 ± 0.008 |
+| MLP + GAT + Image + Cross-Attention (k=6) | 0.928 ± 0.023 | 0.899 ± 0.014 | 0.961 ± 0.010 |
 
 ### Boundary-Aware Metrics
 
@@ -79,7 +82,10 @@ All spatial models achieve ~99.8% top-2 accuracy — when the model is "wrong", 
 | GAT-only (k=6) | 0.999 ± 0.001 | 0.965 ± 0.010 | 0.775 ± 0.083 | 0.114 ± 0.033 |
 | MLP + GAT + Concat (k=6) | 0.999 ± 0.001 | 0.964 ± 0.008 | 0.787 ± 0.078 | 0.111 ± 0.025 |
 | MLP + GAT + Gated (k=6) | 0.999 ± 0.001 | 0.966 ± 0.009 | 0.785 ± 0.093 | 0.120 ± 0.027 |
-| GAT-only (k=12) | **1.000 ± 0.000** | **0.976 ± 0.010** | **0.859 ± 0.034** | **0.100 ± 0.026** |
+| GAT-only (k=12) | 1.000 ± 0.000 | 0.976 ± 0.010 | 0.859 ± 0.034 | 0.100 ± 0.026 |
+| GCN-only (k=6) | 0.999 ± 0.001 | 0.968 ± 0.009 | 0.778 ± 0.084 | 0.102 ± 0.026 |
+| GCN-only (k=12) | 1.000 ± 0.000 | 0.981 ± 0.007 | 0.857 ± 0.033 | 0.082 ± 0.021 |
+| GCN-only (k=24) | **1.000 ± 0.000** | **0.992 ± 0.003** | **0.901 ± 0.021** | **0.079 ± 0.024** |
 | MLP + GAT + Cross-Attention (k=6) | 0.998 ± 0.002 | 0.968 ± 0.006 | 0.775 ± 0.045 | 0.114 ± 0.017 |
 | MLP + GAT + Image + Cross-Attention (k=6) | 0.999 ± 0.001 | 0.968 ± 0.009 | 0.771 ± 0.075 | 0.107 ± 0.026 |
 
@@ -98,6 +104,19 @@ Graph construction matters more than model architecture. Increasing k from 6 to 
 
 GAT-only with k=12 achieves ARI=0.924 — matching MLP+GAT+Cross-Attention at k=6 (ARI=0.928) with a much simpler architecture. Key observations: ARI peaks at k=12 then declines (distant neighbors add noise), while boundary accuracy continues improving with larger k (more context helps at transitions). Interior accuracy approaches 99% at k=24, confirming that errors in interior regions are near-zero.
 
+### GCN KNN Ablation (all 12 slices)
+
+GCN (equal neighbor weighting) outperforms GAT (learned attention) at every k value. The simpler model wins — attention weights don't help when you have enough spatial context.
+
+| k | ARI | Top-2 Acc | Interior Acc | Boundary Acc | Log-Loss |
+|---|---|---|---|---|---|
+| 4 | 0.897 ± 0.035 | 0.997 ± 0.002 | 0.950 ± 0.013 | 0.678 ± 0.079 | 0.148 ± 0.038 |
+| 6 | 0.922 ± 0.027 | 0.999 ± 0.001 | 0.968 ± 0.009 | 0.778 ± 0.084 | 0.102 ± 0.026 |
+| 8 | 0.919 ± 0.025 | 1.000 ± 0.001 | 0.969 ± 0.007 | 0.803 ± 0.037 | 0.104 ± 0.025 |
+| 12 | **0.931 ± 0.025** | 1.000 ± 0.000 | 0.981 ± 0.007 | 0.857 ± 0.033 | 0.082 ± 0.021 |
+| 18 | 0.930 ± 0.025 | 1.000 ± 0.000 | 0.986 ± 0.006 | 0.889 ± 0.020 | **0.079 ± 0.020** |
+| 24 | **0.932 ± 0.025** | **1.000 ± 0.000** | **0.992 ± 0.003** | **0.901 ± 0.021** | 0.079 ± 0.024 |
+
 **Key findings**:
 - Spatial context is critical: MLP-only → GAT-only improves ARI from 0.36 to 0.92
 - **Graph construction (choosing k) is a bigger lever than model architecture (fusion strategy)** — GAT-only with k=12 (ARI=0.924, 100% top-2, 85.9% boundary) nearly matches MLP+GAT+Cross-Attention at k=6 (ARI=0.928) on ARI, and significantly outperforms it on boundary accuracy (85.9% vs 77.5%) and top-2 accuracy (100% vs 99.8%)
@@ -107,6 +126,7 @@ GAT-only with k=12 achieves ARI=0.924 — matching MLP+GAT+Cross-Attention at k=
 - H&E histology image features (ResNet50) provide no additional benefit over the spatial graph — low-resolution Visium images (~15 pixels/spot) lack discriminative morphological detail
 - All spatial models with MLP encoding achieve ~99.8% top-2 accuracy and ~97% interior accuracy — the remaining errors are at domain boundaries where the ground truth itself is ambiguous
 - Boundary accuracy (~78%) represents the annotation noise floor, not model failure — these spots sit at biological transitions between adjacent cortical layers
+- GCN (equal neighbor weighting) outperforms GAT (learned attention) at every k value — the attention mechanism adds no benefit for this task. The simplest model (GCN k=24, 402K params) achieves the best overall results: ARI=0.932, 90.1% boundary accuracy
 
 ## Dataset
 
