@@ -53,11 +53,12 @@ Benchmarked across all 12 DLPFC tissue slices (mean ± std):
 | scGPT (brain) + GAT + Cross-Attention | 0.318 ± 0.109 | 0.313 ± 0.074 | 0.414 ± 0.163 |
 | Geneformer-only (no spatial) | 0.264 ± 0.064 | 0.283 ± 0.087 | 0.498 ± 0.085 |
 | Geneformer + GAT + Cross-Attention | 0.491 ± 0.132 | 0.483 ± 0.145 | 0.618 ± 0.200 |
-| GAT-only | 0.919 ± 0.029 | 0.892 ± 0.018 | 0.958 ± 0.013 |
-| MLP + GAT + Concat | 0.917 ± 0.026 | 0.888 ± 0.015 | 0.956 ± 0.011 |
-| MLP + GAT + Gated | 0.920 ± 0.027 | 0.890 ± 0.017 | 0.958 ± 0.012 |
-| **MLP + GAT + Cross-Attention** | **0.928 ± 0.022** | **0.896 ± 0.011** | **0.960 ± 0.008** |
-| MLP + GAT + Image + Cross-Attention | 0.928 ± 0.023 | 0.899 ± 0.014 | 0.961 ± 0.010 |
+| GAT-only (k=6) | 0.919 ± 0.029 | 0.892 ± 0.018 | 0.958 ± 0.013 |
+| MLP + GAT + Concat (k=6) | 0.917 ± 0.026 | 0.888 ± 0.015 | 0.956 ± 0.011 |
+| MLP + GAT + Gated (k=6) | 0.920 ± 0.027 | 0.890 ± 0.017 | 0.958 ± 0.012 |
+| **GAT-only (k=12)** | **0.924 ± 0.028** | **0.898 ± 0.018** | **0.960 ± 0.012** |
+| MLP + GAT + Cross-Attention (k=6) | 0.928 ± 0.022 | 0.896 ± 0.011 | 0.960 ± 0.008 |
+| MLP + GAT + Image + Cross-Attention (k=6) | 0.928 ± 0.023 | 0.899 ± 0.014 | 0.961 ± 0.010 |
 
 ### Boundary-Aware Metrics
 
@@ -75,31 +76,32 @@ All spatial models achieve ~99.8% top-2 accuracy — when the model is "wrong", 
 | scGPT (brain) + GAT + Cross-Attention | 0.657 ± 0.158 | 0.419 ± 0.164 | 0.255 ± 0.141 | 1.410 ± 0.335 |
 | Geneformer-only (no spatial) | 0.713 ± 0.081 | 0.504 ± 0.090 | 0.337 ± 0.100 | 1.338 ± 0.230 |
 | Geneformer + GAT + Cross-Attention | 0.829 ± 0.117 | 0.624 ± 0.201 | 0.427 ± 0.198 | 0.933 ± 0.386 |
-| GAT-only | 0.999 ± 0.001 | 0.965 ± 0.010 | 0.775 ± 0.083 | 0.114 ± 0.033 |
-| MLP + GAT + Concat | 0.999 ± 0.001 | 0.964 ± 0.008 | 0.787 ± 0.078 | 0.111 ± 0.025 |
-| MLP + GAT + Gated | 0.999 ± 0.001 | 0.966 ± 0.009 | 0.785 ± 0.093 | 0.120 ± 0.027 |
-| **MLP + GAT + Cross-Attention** | **0.998 ± 0.002** | **0.968 ± 0.006** | **0.775 ± 0.045** | **0.114 ± 0.017** |
-| MLP + GAT + Image + Cross-Attention | 0.999 ± 0.001 | 0.968 ± 0.009 | 0.771 ± 0.075 | 0.107 ± 0.026 |
+| GAT-only (k=6) | 0.999 ± 0.001 | 0.965 ± 0.010 | 0.775 ± 0.083 | 0.114 ± 0.033 |
+| MLP + GAT + Concat (k=6) | 0.999 ± 0.001 | 0.964 ± 0.008 | 0.787 ± 0.078 | 0.111 ± 0.025 |
+| MLP + GAT + Gated (k=6) | 0.999 ± 0.001 | 0.966 ± 0.009 | 0.785 ± 0.093 | 0.120 ± 0.027 |
+| **GAT-only (k=12)** | **1.000 ± 0.000** | **0.976 ± 0.010** | **0.859 ± 0.034** | **0.100 ± 0.026** |
+| MLP + GAT + Cross-Attention (k=6) | 0.998 ± 0.002 | 0.968 ± 0.006 | 0.775 ± 0.045 | 0.114 ± 0.017 |
+| MLP + GAT + Image + Cross-Attention (k=6) | 0.999 ± 0.001 | 0.968 ± 0.009 | 0.771 ± 0.075 | 0.107 ± 0.026 |
 
-### KNN Neighbor Ablation (single slice 151673, GAT-only)
+### KNN Neighbor Ablation (GAT-only, all 12 slices)
 
-Graph construction matters more than model architecture. Increasing k from 6 to 12 improves ARI more than adding cross-attention fusion.
+Graph construction matters more than model architecture. Increasing k from 6 to 12 improves performance more than adding cross-attention fusion.
 
-| k | Edges | ARI | Interior Acc | Boundary Acc | Time |
+| k | ARI | Top-2 Acc | Interior Acc | Boundary Acc | Log-Loss |
 |---|---|---|---|---|---|
-| 4 | 14K | 0.853 | 93.3% | 64.7% | 4.8s |
-| 6 (default) | 22K | 0.896 | 96.2% | 69.7% | 7.1s |
-| 8 | 29K | 0.894 | 95.8% | 80.7% | 8.3s |
-| **12** | **43K** | **0.929** | **98.2%** | **87.6%** | **20.7s** |
-| 18 | 65K | 0.916 | 98.7% | 87.1% | 15.4s |
-| 24 | 87K | 0.914 | 99.6% | 88.6% | 19.7s |
+| 4 | 0.896 ± 0.040 | 0.996 ± 0.004 | 0.949 ± 0.017 | 0.666 ± 0.107 | 0.162 ± 0.045 |
+| 6 (default) | 0.919 ± 0.029 | 0.999 ± 0.001 | 0.965 ± 0.010 | 0.775 ± 0.083 | 0.114 ± 0.033 |
+| 8 | 0.913 ± 0.031 | 1.000 ± 0.000 | 0.966 ± 0.010 | 0.789 ± 0.048 | 0.119 ± 0.032 |
+| **12** | **0.924 ± 0.028** | **1.000 ± 0.000** | **0.976 ± 0.010** | **0.859 ± 0.034** | **0.100 ± 0.026** |
+| 18 | 0.919 ± 0.029 | 1.000 ± 0.000 | 0.986 ± 0.005 | 0.861 ± 0.032 | 0.100 ± 0.032 |
+| 24 | 0.916 ± 0.026 | 1.000 ± 0.000 | 0.991 ± 0.005 | 0.872 ± 0.022 | 0.110 ± 0.037 |
 
-Notably, GAT-only with k=12 (ARI=0.929) outperforms MLP+GAT+Cross-Attention with k=6 (ARI=0.928). Adding cross-attention on top of k=12 actually hurts (ARI=0.895) — with a rich enough neighborhood, the GAT's built-in attention is sufficient and extra fusion complexity leads to overfitting.
+GAT-only with k=12 achieves ARI=0.924 — matching MLP+GAT+Cross-Attention at k=6 (ARI=0.928) with a much simpler architecture. Key observations: ARI peaks at k=12 then declines (distant neighbors add noise), while boundary accuracy continues improving with larger k (more context helps at transitions). Interior accuracy approaches 99% at k=24, confirming that errors in interior regions are near-zero.
 
 **Key findings**:
 - Spatial context is critical: MLP-only → GAT-only improves ARI from 0.36 to 0.92
-- **Graph construction (choosing k) is a bigger lever than model architecture (fusion strategy)** — GAT-only with k=12 matches our best cross-attention model. The right graph makes complex fusion unnecessary
-- Cross-attention fusion provides the best performance at k=6, but its benefit vanishes with denser graphs (k=12+)
+- **Graph construction (choosing k) is a bigger lever than model architecture (fusion strategy)** — GAT-only with k=12 (ARI=0.924, 100% top-2, 85.9% boundary) nearly matches MLP+GAT+Cross-Attention at k=6 (ARI=0.928) on ARI, and significantly outperforms it on boundary accuracy (85.9% vs 77.5%) and top-2 accuracy (100% vs 99.8%)
+- MLP+GAT+Cross-Attention at k=6 achieves the highest ARI (0.928), but GAT-only at k=12 is the best model on boundary-aware metrics with a simpler architecture (~130K vs 1.1M parameters)
 - k=12 is the sweet spot: ARI peaks, then declines as too-distant neighbors dilute signal. Boundary accuracy continues improving with larger k (more context helps at transitions)
 - Foundation models (scGPT, Geneformer) with frozen embeddings underperform task-specific MLP encoding — Geneformer is the strongest foundation model (0.491 ARI with spatial) but still far below GAT-only (0.919). These models were pretrained on dissociated cells with no spatial structure, which is the fundamental limitation
 - H&E histology image features (ResNet50) provide no additional benefit over the spatial graph — low-resolution Visium images (~15 pixels/spot) lack discriminative morphological detail
