@@ -48,6 +48,11 @@ Benchmarked across all 12 DLPFC tissue slices (mean ± std):
 | scGPT-only (no spatial) | 0.192 ± 0.092 | 0.190 ± 0.045 | 0.334 ± 0.151 |
 | scGPT + GAT + Gated | 0.256 ± 0.093 | 0.256 ± 0.048 | 0.348 ± 0.163 |
 | scGPT + GAT + Cross-Attention | 0.250 ± 0.124 | 0.254 ± 0.062 | 0.330 ± 0.162 |
+| scGPT (brain)-only (no spatial) | 0.187 ± 0.078 | 0.196 ± 0.035 | 0.332 ± 0.127 |
+| scGPT (brain) + GAT + Gated | 0.327 ± 0.056 | 0.341 ± 0.061 | 0.450 ± 0.176 |
+| scGPT (brain) + GAT + Cross-Attention | 0.318 ± 0.109 | 0.313 ± 0.074 | 0.414 ± 0.163 |
+| Geneformer-only (no spatial) | 0.264 ± 0.064 | 0.283 ± 0.087 | 0.498 ± 0.085 |
+| Geneformer + GAT + Cross-Attention | 0.491 ± 0.132 | 0.483 ± 0.145 | 0.618 ± 0.200 |
 | GAT-only | 0.919 ± 0.029 | 0.892 ± 0.018 | 0.958 ± 0.013 |
 | MLP + GAT + Concat | 0.917 ± 0.026 | 0.888 ± 0.015 | 0.956 ± 0.011 |
 | MLP + GAT + Gated | 0.920 ± 0.027 | 0.890 ± 0.017 | 0.958 ± 0.012 |
@@ -65,6 +70,11 @@ All spatial models achieve ~99.8% top-2 accuracy — when the model is "wrong", 
 | scGPT-only (no spatial) | 0.583 ± 0.135 | 0.339 ± 0.154 | 0.209 ± 0.068 | 1.727 ± 0.170 |
 | scGPT + GAT + Gated | 0.546 ± 0.183 | 0.352 ± 0.168 | 0.264 ± 0.093 | 1.524 ± 0.200 |
 | scGPT + GAT + Cross-Attention | 0.541 ± 0.188 | 0.333 ± 0.166 | 0.247 ± 0.076 | 1.697 ± 0.214 |
+| scGPT (brain)-only (no spatial) | 0.582 ± 0.094 | 0.336 ± 0.129 | 0.230 ± 0.080 | 1.589 ± 0.216 |
+| scGPT (brain) + GAT + Gated | 0.710 ± 0.151 | 0.455 ± 0.180 | 0.325 ± 0.148 | 1.235 ± 0.249 |
+| scGPT (brain) + GAT + Cross-Attention | 0.657 ± 0.158 | 0.419 ± 0.164 | 0.255 ± 0.141 | 1.410 ± 0.335 |
+| Geneformer-only (no spatial) | 0.713 ± 0.081 | 0.504 ± 0.090 | 0.337 ± 0.100 | 1.338 ± 0.230 |
+| Geneformer + GAT + Cross-Attention | 0.829 ± 0.117 | 0.624 ± 0.201 | 0.427 ± 0.198 | 0.933 ± 0.386 |
 | GAT-only | 0.999 ± 0.001 | 0.965 ± 0.010 | 0.775 ± 0.083 | 0.114 ± 0.033 |
 | MLP + GAT + Concat | 0.999 ± 0.001 | 0.964 ± 0.008 | 0.787 ± 0.078 | 0.111 ± 0.025 |
 | MLP + GAT + Gated | 0.999 ± 0.001 | 0.966 ± 0.009 | 0.785 ± 0.093 | 0.120 ± 0.027 |
@@ -74,9 +84,10 @@ All spatial models achieve ~99.8% top-2 accuracy — when the model is "wrong", 
 **Key findings**:
 - Spatial context is critical: MLP-only → GAT-only improves ARI from 0.36 to 0.92
 - Cross-attention fusion provides the best and most robust performance
+- Foundation models (scGPT, Geneformer) with frozen embeddings underperform task-specific MLP encoding — Geneformer is the strongest foundation model (0.491 ARI with spatial) but still far below GAT-only (0.919). The brain-specific scGPT model does not outperform the whole-human scGPT
 - H&E histology image features (ResNet50) provide marginal improvement over expression alone but cannot replace the spatial graph — low-resolution Visium images (~15 pixels/spot) lack discriminative morphological detail
 - Adding image features to the full model (multimodal) does not improve over the two-modality model — spatial graph already captures neighborhood structure more effectively
-- All spatial models achieve ~99.8% top-2 accuracy and ~97% interior accuracy — the remaining errors are at domain boundaries where the ground truth itself is ambiguous
+- All spatial models with MLP encoding achieve ~99.8% top-2 accuracy and ~97% interior accuracy — the remaining errors are at domain boundaries where the ground truth itself is ambiguous
 - Boundary accuracy (~78%) represents the annotation noise floor, not model failure — these spots sit at biological transitions between adjacent cortical layers
 
 ## Dataset
@@ -181,6 +192,10 @@ The model supports multiple configurations via the `--mode` flag:
 | `full` | MLP | GAT | - | Gated/Cross-Attn | Our main model |
 | `scgpt_only` | scGPT proj | - | - | - | Foundation model baseline |
 | `scgpt` | scGPT proj | GAT | - | Gated/Cross-Attn | Foundation model + spatial |
+| `scgpt_brain_only` | scGPT (brain) proj | - | - | - | Brain-specific scGPT baseline |
+| `scgpt_brain` | scGPT (brain) proj | GAT | - | Gated/Cross-Attn | Brain-specific scGPT + spatial |
+| `geneformer_only` | Geneformer proj | - | - | - | Geneformer baseline |
+| `geneformer` | Geneformer proj | GAT | - | Gated/Cross-Attn | Geneformer + spatial |
 | `img_expr` | MLP | - | ResNet50 | Cross-Attn | Image replaces spatial graph |
 | `multimodal` | MLP | GAT | ResNet50 | Cross-Attn + Gate | Three-modality fusion |
 

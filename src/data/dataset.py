@@ -17,7 +17,11 @@ from torch_geometric.data import Data
 def load_dlpfc_data(sample_id: str, processed_dir: str = "data/processed",
                     train_ratio: float = 0.6, val_ratio: float = 0.2,
                     seed: int = 42, load_scgpt: bool = False,
-                    load_image: bool = False) -> Data:
+                    load_image: bool = False,
+                    load_geneformer: bool = False,
+                    load_scgpt_brain: bool = False,
+                    load_scgpt_tokens: bool = False,
+                    load_geneformer_tokens: bool = False) -> Data:
     """
     Load preprocessed DLPFC data as a PyG Data object.
 
@@ -87,6 +91,43 @@ def load_dlpfc_data(sample_id: str, processed_dir: str = "data/processed",
                 f"scGPT embeddings not found at {scgpt_path}. "
                 "Run scripts/extract_scgpt_embeddings.py first."
             )
+
+    # Optionally load scGPT brain embeddings (stored as scgpt_embeddings for model compatibility)
+    if load_scgpt_brain:
+        brain_path = os.path.join(data_dir, "scgpt_brain_embeddings.pt")
+        if os.path.exists(brain_path):
+            data.scgpt_embeddings = torch.load(brain_path, weights_only=True)
+        else:
+            raise FileNotFoundError(
+                f"scGPT brain embeddings not found at {brain_path}. "
+                "Run scripts/extract_scgpt_embeddings.py --model_dir data/scgpt_brain --output_name scgpt_brain_embeddings.pt first."
+            )
+
+    # Optionally load Geneformer embeddings
+    if load_geneformer:
+        gf_path = os.path.join(data_dir, "geneformer_embeddings.pt")
+        if os.path.exists(gf_path):
+            data.geneformer_embeddings = torch.load(gf_path, weights_only=True)
+        else:
+            raise FileNotFoundError(
+                f"Geneformer embeddings not found at {gf_path}. "
+                "Run scripts/extract_geneformer_embeddings.py first."
+            )
+
+    # Optionally load tokenized data for fine-tuning
+    if load_scgpt_tokens:
+        tok_path = os.path.join(data_dir, "scgpt_tokens.pt")
+        if os.path.exists(tok_path):
+            data.scgpt_tokens = torch.load(tok_path, weights_only=True)
+        else:
+            raise FileNotFoundError(f"scGPT tokens not found at {tok_path}.")
+
+    if load_geneformer_tokens:
+        tok_path = os.path.join(data_dir, "geneformer_tokens.pt")
+        if os.path.exists(tok_path):
+            data.geneformer_tokens = torch.load(tok_path, weights_only=True)
+        else:
+            raise FileNotFoundError(f"Geneformer tokens not found at {tok_path}.")
 
     # Optionally load image features
     if load_image:

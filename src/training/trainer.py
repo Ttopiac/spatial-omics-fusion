@@ -17,12 +17,19 @@ from src.utils.metrics import compute_metrics, compute_extended_metrics
 
 class Trainer:
     def __init__(self, model, data, device, lr=1e-3, weight_decay=1e-4,
-                 epochs=200, patience=20):
+                 epochs=200, patience=20, foundation_lr=None):
         self.model = model.to(device)
-        self.data = data.to(device)
         self.device = device
         self.epochs = epochs
         self.patience = patience
+        self.is_finetune = hasattr(model, "foundation_parameters")
+
+        # Move data to device, handling nested dicts (tokenized data)
+        self.data = data.to(device)
+        if hasattr(data, "scgpt_tokens"):
+            self.data.scgpt_tokens = {k: v.to(device) for k, v in data.scgpt_tokens.items()}
+        if hasattr(data, "geneformer_tokens"):
+            self.data.geneformer_tokens = {k: v.to(device) for k, v in data.geneformer_tokens.items()}
 
         # Compute class weights (inverse frequency) for imbalanced classes
         labels = data.y[data.train_mask].cpu()
@@ -31,9 +38,16 @@ class Trainer:
         class_weights = class_weights / class_weights.sum() * data.n_classes
         self.criterion = nn.CrossEntropyLoss(weight=class_weights.to(device))
 
-        self.optimizer = torch.optim.AdamW(
-            model.parameters(), lr=lr, weight_decay=weight_decay
-        )
+        # Use parameter groups for fine-tuning (lower LR for foundation model)
+        if self.is_finetune and foundation_lr is not None:
+            self.optimizer = torch.optim.AdamW([
+                {"params": model.foundation_parameters(), "lr": foundation_lr},
+                {"params": model.downstream_parameters(), "lr": lr},
+            ], weight_decay=weight_decay)
+        else:
+            self.optimizer = torch.optim.AdamW(
+                model.parameters(), lr=lr, weight_decay=weight_decay
+            )
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             self.optimizer, mode="max", factor=0.5, patience=10
         )
@@ -45,12 +59,18 @@ class Trainer:
         self.history = []
 
     def _forward(self):
-        """Forward pass with optional scGPT/image embeddings."""
+        """Forward pass with optional scGPT/Geneformer/image embeddings or tokens."""
         scgpt_embed = getattr(self.data, "scgpt_embeddings", None)
         image_feat = getattr(self.data, "image_features", None)
+        geneformer_embed = getattr(self.data, "geneformer_embeddings", None)
+        scgpt_tokens = getattr(self.data, "scgpt_tokens", None)
+        geneformer_tokens = getattr(self.data, "geneformer_tokens", None)
         return self.model(self.data.x, self.data.edge_index,
                           scgpt_embeddings=scgpt_embed,
-                          image_features=image_feat)
+                          image_features=image_feat,
+                          geneformer_embeddings=geneformer_embed,
+                          scgpt_tokens=scgpt_tokens,
+                          geneformer_tokens=geneformer_tokens)
 
     def train_epoch(self):
         self.model.train()

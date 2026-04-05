@@ -14,6 +14,10 @@ The model supports different "modes" for ablation studies:
 - "concat":     MLP + GAT + Concatenate + Classifier  (simple baseline)
 - "scgpt":      Frozen scGPT projection + GAT + Fusion + Classifier
 - "scgpt_only": Frozen scGPT projection + Classifier (no spatial info)
+- "geneformer":      Frozen Geneformer projection + GAT + Fusion + Classifier
+- "geneformer_only": Frozen Geneformer projection + Classifier (no spatial info)
+- "scgpt_brain":      Same as scgpt but with brain-specific scGPT embeddings
+- "scgpt_brain_only": Same as scgpt_only but with brain-specific scGPT embeddings
 - "multimodal": MLP + GAT + Image Encoder + Three-way Fusion + Classifier
 - "img_expr":   MLP + Image Encoder + Cross-Attention Fusion + Classifier (no GAT)
 """
@@ -25,6 +29,7 @@ from src.models.spatial_encoder import SpatialEncoder
 from src.models.fusion import get_fusion
 
 SCGPT_EMBED_DIM = 512
+GENEFORMER_EMBED_DIM = 768
 RESNET_EMBED_DIM = 2048
 
 
@@ -40,10 +45,19 @@ class SpatialOmicsFusion(nn.Module):
         self.embed_dim = embed_dim
 
         # scGPT modes use a linear projection instead of MLP
-        if mode in ("scgpt", "scgpt_only"):
+        if mode in ("scgpt", "scgpt_only", "scgpt_brain", "scgpt_brain_only"):
             self.scgpt_projection = nn.Sequential(
                 nn.LayerNorm(SCGPT_EMBED_DIM),
                 nn.Linear(SCGPT_EMBED_DIM, embed_dim),
+                nn.GELU(),
+                nn.Dropout(dropout),
+            )
+
+        # Geneformer modes use a linear projection instead of MLP
+        if mode in ("geneformer", "geneformer_only"):
+            self.geneformer_projection = nn.Sequential(
+                nn.LayerNorm(GENEFORMER_EMBED_DIM),
+                nn.Linear(GENEFORMER_EMBED_DIM, embed_dim),
                 nn.GELU(),
                 nn.Dropout(dropout),
             )
@@ -56,22 +70,22 @@ class SpatialOmicsFusion(nn.Module):
             )
 
         # Expression encoder (used in most modes)
-        if mode not in ("gat_only", "scgpt", "scgpt_only"):
+        if mode not in ("gat_only", "scgpt", "scgpt_only", "scgpt_brain", "scgpt_brain_only", "geneformer", "geneformer_only"):
             self.expr_encoder = ExpressionEncoder(
                 n_genes=n_genes, embed_dim=embed_dim,
                 hidden_dim=hidden_dim, n_layers=expr_layers, dropout=dropout,
             )
 
-        # Spatial encoder (used in all modes except expr_only, scgpt_only, img_expr)
-        if mode not in ("expr_only", "scgpt_only", "img_expr"):
+        # Spatial encoder (used in all modes except expr_only, scgpt_only, geneformer_only, img_expr)
+        if mode not in ("expr_only", "scgpt_only", "scgpt_brain_only", "geneformer_only", "img_expr"):
             gat_input_dim = embed_dim if mode != "gat_only" else n_genes
             self.spatial_encoder = SpatialEncoder(
                 input_dim=gat_input_dim, embed_dim=embed_dim,
                 n_heads=gat_heads, n_layers=gat_layers, dropout=dropout,
             )
 
-        # Fusion (used in "full", "scgpt", "multimodal", and "img_expr" modes)
-        if mode in ("full", "scgpt", "multimodal", "img_expr"):
+        # Fusion (used in "full", "scgpt", "geneformer", "multimodal", and "img_expr" modes)
+        if mode in ("full", "scgpt", "scgpt_brain", "geneformer", "multimodal", "img_expr"):
             self.fusion = get_fusion(
                 fusion_type, embed_dim=embed_dim, n_heads=fusion_heads,
                 n_layers=fusion_layers, dropout=dropout,
@@ -93,13 +107,15 @@ class SpatialOmicsFusion(nn.Module):
 
     def forward(self, x: torch.Tensor, edge_index: torch.Tensor,
                 scgpt_embeddings: torch.Tensor = None,
-                image_features: torch.Tensor = None):
+                image_features: torch.Tensor = None,
+                geneformer_embeddings: torch.Tensor = None):
         """
         Args:
             x: gene expression features, shape (N, n_genes)
             edge_index: spatial graph edges, shape (2, E)
             scgpt_embeddings: optional scGPT embeddings, shape (N, 512)
             image_features: optional image features, shape (N, 2048)
+            geneformer_embeddings: optional Geneformer embeddings, shape (N, 768)
         Returns:
             logits: (N, n_classes)
             embeddings: (N, embed_dim) — the representation before classifier
@@ -108,8 +124,12 @@ class SpatialOmicsFusion(nn.Module):
             embed = self.expr_encoder(x)
             return self.classifier(embed), embed
 
-        if self.mode == "scgpt_only":
+        if self.mode in ("scgpt_only", "scgpt_brain_only"):
             embed = self.scgpt_projection(scgpt_embeddings)
+            return self.classifier(embed), embed
+
+        if self.mode == "geneformer_only":
+            embed = self.geneformer_projection(geneformer_embeddings)
             return self.classifier(embed), embed
 
         if self.mode == "gat_only":
@@ -124,9 +144,11 @@ class SpatialOmicsFusion(nn.Module):
             embed = self.fusion(expr_embed, img_embed, edge_index)
             return self.classifier(embed), embed
 
-        # Get expression embedding (MLP or scGPT projection)
-        if self.mode == "scgpt":
+        # Get expression embedding (MLP, scGPT projection, or Geneformer projection)
+        if self.mode in ("scgpt", "scgpt_brain"):
             expr_embed = self.scgpt_projection(scgpt_embeddings)
+        elif self.mode == "geneformer":
+            expr_embed = self.geneformer_projection(geneformer_embeddings)
         else:
             expr_embed = self.expr_encoder(x)
 
@@ -146,5 +168,5 @@ class SpatialOmicsFusion(nn.Module):
             embed = self.multimodal_norm(gate * fused + (1 - gate) * img_embed)
             return self.classifier(embed), embed
 
-        # mode == "full" or "scgpt"
+        # mode == "full", "scgpt", "scgpt_brain", or "geneformer"
         return self.classifier(fused), fused

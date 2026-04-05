@@ -284,6 +284,8 @@ def main():
     parser.add_argument("--raw_dir", type=str, default="data/raw")
     parser.add_argument("--output_dir", type=str, default="data/processed")
     parser.add_argument("--sample_ids", nargs="+", default=None)
+    parser.add_argument("--output_name", type=str, default="scgpt_embeddings.pt",
+                        help="Output filename (e.g., scgpt_brain_embeddings.pt)")
     parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument("--device", type=str, default="auto")
     args = parser.parse_args()
@@ -340,8 +342,12 @@ def main():
         )
         print(f"  Embeddings shape: {embeddings.shape}")
 
+        # Save tokenized data (for fine-tuning)
+        token_path = os.path.join(args.output_dir, sid, "scgpt_tokens.pt")
+        torch.save({"gene_ids": gene_ids, "values": values}, token_path)
+
         # Save
-        output_path = os.path.join(args.output_dir, sid, "scgpt_embeddings.pt")
+        output_path = os.path.join(args.output_dir, sid, args.output_name)
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         torch.save(embeddings, output_path)
         print(f"  Saved to {output_path}")

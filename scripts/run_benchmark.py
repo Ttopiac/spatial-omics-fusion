@@ -44,6 +44,14 @@ EXPERIMENTS = [
     ("scgpt_only", "gated"),
     ("scgpt", "gated"),
     ("scgpt", "cross_attention"),
+    ("geneformer_only", "gated"),
+    ("geneformer", "gated"),
+    ("geneformer", "cross_attention"),
+    ("scgpt_brain_only", "gated"),
+    ("scgpt_brain", "gated"),
+    ("scgpt_brain", "cross_attention"),
+    ("scgpt_finetune", "cross_attention"),
+    ("geneformer_finetune", "cross_attention"),
 ]
 
 
@@ -66,6 +74,10 @@ def run_single(sample_id, mode, fusion_type, cfg, device):
     # Load data (with optional embeddings)
     use_scgpt = mode in ("scgpt", "scgpt_only")
     use_image = mode in ("multimodal", "img_expr")
+    use_geneformer = mode in ("geneformer", "geneformer_only")
+    use_scgpt_brain = mode in ("scgpt_brain", "scgpt_brain_only")
+    use_scgpt_tokens = mode == "scgpt_finetune"
+    use_geneformer_tokens = mode == "geneformer_finetune"
     data = load_dlpfc_data(
         sample_id,
         train_ratio=cfg["data"]["train_ratio"],
@@ -73,10 +85,14 @@ def run_single(sample_id, mode, fusion_type, cfg, device):
         seed=seed,
         load_scgpt=use_scgpt,
         load_image=use_image,
+        load_geneformer=use_geneformer,
+        load_scgpt_brain=use_scgpt_brain,
+        load_scgpt_tokens=use_scgpt_tokens,
+        load_geneformer_tokens=use_geneformer_tokens,
     )
 
     # Create model
-    model = SpatialOmicsFusion(
+    common_kwargs = dict(
         n_genes=data.x.shape[1],
         n_classes=data.n_classes,
         embed_dim=cfg["model"]["embed_dim"],
@@ -88,16 +104,26 @@ def run_single(sample_id, mode, fusion_type, cfg, device):
         fusion_heads=cfg["model"]["fusion"]["n_heads"],
         fusion_layers=cfg["model"]["fusion"]["n_layers"],
         dropout=cfg["model"]["expression_encoder"]["dropout"],
-        mode=mode,
     )
 
+    if mode == "scgpt_finetune":
+        from src.models.finetune_model import ScGPTFinetune
+        model = ScGPTFinetune(model_dir="data/scgpt_human", **common_kwargs)
+    elif mode == "geneformer_finetune":
+        from src.models.finetune_model import GeneformerFinetune
+        model = GeneformerFinetune(**common_kwargs)
+    else:
+        model = SpatialOmicsFusion(**common_kwargs, mode=mode)
+
     # Train
+    foundation_lr = 1e-5 if mode.endswith("_finetune") else None
     trainer = Trainer(
         model=model, data=data, device=device,
         lr=cfg["training"]["lr"],
         weight_decay=cfg["training"]["weight_decay"],
         epochs=cfg["training"]["epochs"],
         patience=cfg["training"]["patience"],
+        foundation_lr=foundation_lr,
     )
     trainer.fit()
     test_metrics = trainer.test(extended=True)
