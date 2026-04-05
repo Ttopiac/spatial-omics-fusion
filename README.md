@@ -44,27 +44,33 @@ Benchmarked across all 12 DLPFC tissue slices (mean ± std):
 | Model | ARI | NMI | Accuracy |
 |---|---|---|---|
 | MLP-only (no spatial) | 0.356 ± 0.068 | 0.328 ± 0.043 | 0.607 ± 0.047 |
+| Image + MLP + Cross-Attention | 0.447 ± 0.147 | 0.427 ± 0.065 | 0.659 ± 0.084 |
 | GAT-only | 0.919 ± 0.029 | 0.892 ± 0.018 | 0.958 ± 0.013 |
 | MLP + GAT + Concat | 0.917 ± 0.026 | 0.888 ± 0.015 | 0.956 ± 0.011 |
 | MLP + GAT + Gated | 0.920 ± 0.027 | 0.890 ± 0.017 | 0.958 ± 0.012 |
 | **MLP + GAT + Cross-Attention** | **0.928 ± 0.022** | **0.896 ± 0.011** | **0.960 ± 0.008** |
+| MLP + GAT + Image + Cross-Attention | 0.928 ± 0.023 | 0.899 ± 0.014 | 0.961 ± 0.010 |
 
 ### Boundary-Aware Metrics
 
-All models achieve ~99.8% top-2 accuracy — when the model is "wrong", the true label is almost always its second choice. Errors occur exclusively at domain boundaries where ground truth annotations are inherently ambiguous.
+All spatial models achieve ~99.8% top-2 accuracy — when the model is "wrong", the true label is almost always its second choice. Errors occur exclusively at domain boundaries where ground truth annotations are inherently ambiguous.
 
 | Model | Top-2 Acc | Interior Acc | Boundary Acc | Log-Loss |
 |---|---|---|---|---|
 | MLP-only (no spatial) | 0.797 ± 0.043 | 0.616 ± 0.047 | 0.356 ± 0.081 | 1.315 ± 0.185 |
+| Image + MLP + Cross-Attention | 0.837 ± 0.059 | 0.669 ± 0.083 | 0.390 ± 0.129 | 0.998 ± 0.249 |
 | GAT-only | 0.999 ± 0.001 | 0.965 ± 0.010 | 0.775 ± 0.083 | 0.114 ± 0.033 |
 | MLP + GAT + Concat | 0.999 ± 0.001 | 0.964 ± 0.008 | 0.787 ± 0.078 | 0.111 ± 0.025 |
 | MLP + GAT + Gated | 0.999 ± 0.001 | 0.966 ± 0.009 | 0.785 ± 0.093 | 0.120 ± 0.027 |
 | **MLP + GAT + Cross-Attention** | **0.998 ± 0.002** | **0.968 ± 0.006** | **0.775 ± 0.045** | **0.114 ± 0.017** |
+| MLP + GAT + Image + Cross-Attention | 0.999 ± 0.001 | 0.968 ± 0.009 | 0.771 ± 0.075 | 0.107 ± 0.026 |
 
 **Key findings**:
 - Spatial context is critical: MLP-only → GAT-only improves ARI from 0.36 to 0.92
 - Cross-attention fusion provides the best and most robust performance
-- All spatial models achieve ~99.8% top-2 accuracy and ~97% interior accuracy — the remaining ~3-4% errors are at domain boundaries where the ground truth itself is ambiguous
+- H&E histology image features (ResNet50) provide marginal improvement over expression alone but cannot replace the spatial graph — low-resolution Visium images (~15 pixels/spot) lack discriminative morphological detail
+- Adding image features to the full model (multimodal) does not improve over the two-modality model — spatial graph already captures neighborhood structure more effectively
+- All spatial models achieve ~99.8% top-2 accuracy and ~97% interior accuracy — the remaining errors are at domain boundaries where the ground truth itself is ambiguous
 - Boundary accuracy (~78%) represents the annotation noise floor, not model failure — these spots sit at biological transitions between adjacent cortical layers
 
 ## Dataset

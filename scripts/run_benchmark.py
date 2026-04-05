@@ -63,14 +63,16 @@ def run_single(sample_id, mode, fusion_type, cfg, device):
             knn_k=cfg["data"]["knn_k"],
         )
 
-    # Load data (with scGPT embeddings if needed)
+    # Load data (with optional embeddings)
     use_scgpt = mode in ("scgpt", "scgpt_only")
+    use_image = mode in ("multimodal", "img_expr")
     data = load_dlpfc_data(
         sample_id,
         train_ratio=cfg["data"]["train_ratio"],
         val_ratio=cfg["data"]["val_ratio"],
         seed=seed,
         load_scgpt=use_scgpt,
+        load_image=use_image,
     )
 
     # Create model
