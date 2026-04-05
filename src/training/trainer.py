@@ -12,7 +12,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-from src.utils.metrics import compute_metrics
+from src.utils.metrics import compute_metrics, compute_extended_metrics
 
 
 class Trainer:
@@ -126,10 +126,41 @@ class Trainer:
         print(f"Done in {elapsed:.1f}s | Best val ARI: {self.best_val_ari:.4f}")
         return self.history
 
-    def test(self):
+    def test(self, extended=False):
         """Evaluate on test set using best model."""
-        test_metrics = self.evaluate(self.data.test_mask)
+        if not extended:
+            test_metrics = self.evaluate(self.data.test_mask)
+            print(f"Test | ARI={test_metrics['ari']:.4f} | "
+                  f"NMI={test_metrics['nmi']:.4f} | "
+                  f"Acc={test_metrics['accuracy']:.4f}")
+            return test_metrics
+
+        # Extended evaluation with probabilities and boundary analysis
+        self.model.eval()
+        with torch.no_grad():
+            logits, _ = self._forward()
+            mask = self.data.test_mask
+            probs = torch.softmax(logits[mask], dim=-1).cpu().numpy()
+            preds = logits[mask].argmax(dim=-1).cpu().numpy()
+            true = self.data.y[mask].cpu().numpy()
+            edge_index = self.data.edge_index.cpu().numpy()
+
+            # Remap edge_index to test-only indices
+            test_indices = mask.nonzero(as_tuple=True)[0].cpu().numpy()
+            idx_map = {orig: new for new, orig in enumerate(test_indices)}
+            test_edges_src, test_edges_tgt = [], []
+            for i in range(edge_index.shape[1]):
+                s, t = edge_index[0, i], edge_index[1, i]
+                if s in idx_map and t in idx_map:
+                    test_edges_src.append(idx_map[s])
+                    test_edges_tgt.append(idx_map[t])
+            test_edge_index = np.array([test_edges_src, test_edges_tgt])
+
+        test_metrics = compute_extended_metrics(true, preds, probs, test_edge_index)
         print(f"Test | ARI={test_metrics['ari']:.4f} | "
               f"NMI={test_metrics['nmi']:.4f} | "
-              f"Acc={test_metrics['accuracy']:.4f}")
+              f"Acc={test_metrics['accuracy']:.4f} | "
+              f"Top2={test_metrics['top2_accuracy']:.4f} | "
+              f"Interior={test_metrics['interior_accuracy']:.4f} | "
+              f"Boundary={test_metrics['boundary_accuracy']:.4f}")
         return test_metrics

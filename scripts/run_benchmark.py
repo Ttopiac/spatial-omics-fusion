@@ -98,13 +98,16 @@ def run_single(sample_id, mode, fusion_type, cfg, device):
         patience=cfg["training"]["patience"],
     )
     trainer.fit()
-    test_metrics = trainer.test()
+    test_metrics = trainer.test(extended=True)
 
     # Save
     result_dir = os.path.join("results", f"{mode}_{fusion_type}_{sample_id}")
     os.makedirs(result_dir, exist_ok=True)
+    # Convert numpy types to native Python for JSON serialization
+    serializable_metrics = {k: float(v) if isinstance(v, (np.floating, float)) else int(v) if isinstance(v, (np.integer,)) else v
+                            for k, v in test_metrics.items()}
     with open(os.path.join(result_dir, "metrics.json"), "w") as f:
-        json.dump({"test": test_metrics, "best_val_ari": trainer.best_val_ari}, f, indent=2)
+        json.dump({"test": serializable_metrics, "best_val_ari": float(trainer.best_val_ari)}, f, indent=2)
     torch.save(trainer.best_state, os.path.join(result_dir, "model.pt"))
 
     return test_metrics
@@ -159,33 +162,52 @@ def main():
 
         # Summary for this experiment
         print(f"\n--- {exp_name} Summary ---")
-        print(f"  ARI:  {np.mean(aris):.4f} +/- {np.std(aris):.4f}")
-        print(f"  NMI:  {np.mean(nmis):.4f} +/- {np.std(nmis):.4f}")
-        print(f"  Acc:  {np.mean(accs):.4f} +/- {np.std(accs):.4f}")
+        print(f"  ARI:      {np.mean(aris):.4f} +/- {np.std(aris):.4f}")
+        print(f"  NMI:      {np.mean(nmis):.4f} +/- {np.std(nmis):.4f}")
+        print(f"  Acc:      {np.mean(accs):.4f} +/- {np.std(accs):.4f}")
+        # Extended metrics (may not be present for all experiments)
+        for key in ["top2_accuracy", "interior_accuracy", "boundary_accuracy", "log_loss"]:
+            vals = [m.get(key) for m in all_results[exp_name].values() if m.get(key) is not None]
+            if vals:
+                print(f"  {key:16s}: {np.mean(vals):.4f} +/- {np.std(vals):.4f}")
 
     # Final summary table
     total_time = time.time() - total_start
     print(f"\n{'='*80}")
     print(f"FINAL RESULTS (across {len(sample_ids)} slices)")
     print(f"{'='*80}")
-    print(f"{'Experiment':<30} {'ARI':>12} {'NMI':>12} {'Acc':>12}")
-    print("-" * 70)
+    print(f"{'Experiment':<30} {'ARI':>12} {'NMI':>12} {'Acc':>12} {'Top-2':>12} {'Interior':>12} {'Boundary':>12}")
+    print("-" * 106)
 
     for exp_name, slice_results in all_results.items():
         aris = [m["ari"] for m in slice_results.values()]
         nmis = [m["nmi"] for m in slice_results.values()]
         accs = [m["accuracy"] for m in slice_results.values()]
-        print(f"{exp_name:<30} "
-              f"{np.mean(aris):.4f}+/-{np.std(aris):.4f} "
-              f"{np.mean(nmis):.4f}+/-{np.std(nmis):.4f} "
-              f"{np.mean(accs):.4f}+/-{np.std(accs):.4f}")
+        row = (f"{exp_name:<30} "
+               f"{np.mean(aris):.4f}+/-{np.std(aris):.4f} "
+               f"{np.mean(nmis):.4f}+/-{np.std(nmis):.4f} "
+               f"{np.mean(accs):.4f}+/-{np.std(accs):.4f}")
+        for key in ["top2_accuracy", "interior_accuracy", "boundary_accuracy"]:
+            vals = [m.get(key) for m in slice_results.values() if m.get(key) is not None]
+            if vals:
+                row += f" {np.mean(vals):.4f}+/-{np.std(vals):.4f}"
+        print(row)
 
     print(f"\nTotal time: {total_time:.1f}s")
 
-    # Save summary
+    # Save summary (convert numpy types for JSON)
+    def make_serializable(obj):
+        if isinstance(obj, dict):
+            return {k: make_serializable(v) for k, v in obj.items()}
+        if isinstance(obj, (np.floating, float)):
+            return float(obj)
+        if isinstance(obj, (np.integer, int)):
+            return int(obj)
+        return obj
+
     summary_path = "results/benchmark_summary.json"
     with open(summary_path, "w") as f:
-        json.dump(all_results, f, indent=2)
+        json.dump(make_serializable(all_results), f, indent=2)
     print(f"Saved to {summary_path}")
 
 
