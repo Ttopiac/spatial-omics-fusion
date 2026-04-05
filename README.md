@@ -56,9 +56,9 @@ Benchmarked across all 12 DLPFC tissue slices (mean ± std):
 | GAT-only (k=6) | 0.919 ± 0.029 | 0.892 ± 0.018 | 0.958 ± 0.013 |
 | MLP + GAT + Concat (k=6) | 0.917 ± 0.026 | 0.888 ± 0.015 | 0.956 ± 0.011 |
 | MLP + GAT + Gated (k=6) | 0.920 ± 0.027 | 0.890 ± 0.017 | 0.958 ± 0.012 |
-| **GAT-only (k=12)** | **0.924 ± 0.028** | **0.898 ± 0.018** | **0.960 ± 0.012** |
-| MLP + GAT + Cross-Attention (k=6) | 0.928 ± 0.022 | 0.896 ± 0.011 | 0.960 ± 0.008 |
-| MLP + GAT + Image + Cross-Attention (k=6) | 0.928 ± 0.023 | 0.899 ± 0.014 | 0.961 ± 0.010 |
+| GAT-only (k=12) | 0.924 ± 0.028 | 0.898 ± 0.018 | 0.960 ± 0.012 |
+| MLP + GAT + Cross-Attention (k=6) | **0.928 ± 0.022** | 0.896 ± 0.011 | 0.960 ± 0.008 |
+| MLP + GAT + Image + Cross-Attention (k=6) | **0.928 ± 0.023** | **0.899 ± 0.014** | **0.961 ± 0.010** |
 
 ### Boundary-Aware Metrics
 
@@ -79,7 +79,7 @@ All spatial models achieve ~99.8% top-2 accuracy — when the model is "wrong", 
 | GAT-only (k=6) | 0.999 ± 0.001 | 0.965 ± 0.010 | 0.775 ± 0.083 | 0.114 ± 0.033 |
 | MLP + GAT + Concat (k=6) | 0.999 ± 0.001 | 0.964 ± 0.008 | 0.787 ± 0.078 | 0.111 ± 0.025 |
 | MLP + GAT + Gated (k=6) | 0.999 ± 0.001 | 0.966 ± 0.009 | 0.785 ± 0.093 | 0.120 ± 0.027 |
-| **GAT-only (k=12)** | **1.000 ± 0.000** | **0.976 ± 0.010** | **0.859 ± 0.034** | **0.100 ± 0.026** |
+| GAT-only (k=12) | **1.000 ± 0.000** | **0.976 ± 0.010** | **0.859 ± 0.034** | **0.100 ± 0.026** |
 | MLP + GAT + Cross-Attention (k=6) | 0.998 ± 0.002 | 0.968 ± 0.006 | 0.775 ± 0.045 | 0.114 ± 0.017 |
 | MLP + GAT + Image + Cross-Attention (k=6) | 0.999 ± 0.001 | 0.968 ± 0.009 | 0.771 ± 0.075 | 0.107 ± 0.026 |
 
@@ -92,9 +92,9 @@ Graph construction matters more than model architecture. Increasing k from 6 to 
 | 4 | 0.896 ± 0.040 | 0.996 ± 0.004 | 0.949 ± 0.017 | 0.666 ± 0.107 | 0.162 ± 0.045 |
 | 6 (default) | 0.919 ± 0.029 | 0.999 ± 0.001 | 0.965 ± 0.010 | 0.775 ± 0.083 | 0.114 ± 0.033 |
 | 8 | 0.913 ± 0.031 | 1.000 ± 0.000 | 0.966 ± 0.010 | 0.789 ± 0.048 | 0.119 ± 0.032 |
-| **12** | **0.924 ± 0.028** | **1.000 ± 0.000** | **0.976 ± 0.010** | **0.859 ± 0.034** | **0.100 ± 0.026** |
-| 18 | 0.919 ± 0.029 | 1.000 ± 0.000 | 0.986 ± 0.005 | 0.861 ± 0.032 | 0.100 ± 0.032 |
-| 24 | 0.916 ± 0.026 | 1.000 ± 0.000 | 0.991 ± 0.005 | 0.872 ± 0.022 | 0.110 ± 0.037 |
+| 12 | **0.924 ± 0.028** | 1.000 ± 0.000 | 0.976 ± 0.010 | 0.859 ± 0.034 | **0.100 ± 0.026** |
+| 18 | 0.919 ± 0.029 | 1.000 ± 0.000 | 0.986 ± 0.005 | 0.861 ± 0.032 | **0.100 ± 0.032** |
+| 24 | 0.916 ± 0.026 | **1.000 ± 0.000** | **0.991 ± 0.005** | **0.872 ± 0.022** | 0.110 ± 0.037 |
 
 GAT-only with k=12 achieves ARI=0.924 — matching MLP+GAT+Cross-Attention at k=6 (ARI=0.928) with a much simpler architecture. Key observations: ARI peaks at k=12 then declines (distant neighbors add noise), while boundary accuracy continues improving with larger k (more context helps at transitions). Interior accuracy approaches 99% at k=24, confirming that errors in interior regions are near-zero.
 
