@@ -20,6 +20,8 @@ The model supports different "modes" for ablation studies:
 - "scgpt_brain_only": Same as scgpt_only but with brain-specific scGPT embeddings
 - "multimodal": MLP + GAT + Image Encoder + Three-way Fusion + Classifier
 - "img_expr":   MLP + Image Encoder + Cross-Attention Fusion + Classifier (no GAT)
+- "gcn_only":   GCN + Classifier (GCN baseline, no attention)
+- "gcn_full":   MLP + GCN + Fusion + Classifier (GCN replaces GAT)
 """
 import torch
 import torch.nn as nn
@@ -76,16 +78,23 @@ class SpatialOmicsFusion(nn.Module):
                 hidden_dim=hidden_dim, n_layers=expr_layers, dropout=dropout,
             )
 
-        # Spatial encoder (used in all modes except expr_only, scgpt_only, geneformer_only, img_expr)
-        if mode not in ("expr_only", "scgpt_only", "scgpt_brain_only", "geneformer_only", "img_expr"):
+        # Spatial encoder (GAT or GCN depending on mode)
+        if mode in ("gcn_only", "gcn_full"):
+            from src.models.gcn_encoder import GCNEncoder
+            gcn_input_dim = n_genes if mode == "gcn_only" else embed_dim
+            self.spatial_encoder = GCNEncoder(
+                input_dim=gcn_input_dim, embed_dim=embed_dim,
+                n_layers=gat_layers, dropout=dropout,
+            )
+        elif mode not in ("expr_only", "scgpt_only", "scgpt_brain_only", "geneformer_only", "img_expr"):
             gat_input_dim = embed_dim if mode != "gat_only" else n_genes
             self.spatial_encoder = SpatialEncoder(
                 input_dim=gat_input_dim, embed_dim=embed_dim,
                 n_heads=gat_heads, n_layers=gat_layers, dropout=dropout,
             )
 
-        # Fusion (used in "full", "scgpt", "geneformer", "multimodal", and "img_expr" modes)
-        if mode in ("full", "scgpt", "scgpt_brain", "geneformer", "multimodal", "img_expr"):
+        # Fusion
+        if mode in ("full", "scgpt", "scgpt_brain", "geneformer", "multimodal", "img_expr", "gcn_full"):
             self.fusion = get_fusion(
                 fusion_type, embed_dim=embed_dim, n_heads=fusion_heads,
                 n_layers=fusion_layers, dropout=dropout,
@@ -132,7 +141,7 @@ class SpatialOmicsFusion(nn.Module):
             embed = self.geneformer_projection(geneformer_embeddings)
             return self.classifier(embed), embed
 
-        if self.mode == "gat_only":
+        if self.mode in ("gat_only", "gcn_only"):
             embed = self.spatial_encoder(x, edge_index)
             return self.classifier(embed), embed
 
