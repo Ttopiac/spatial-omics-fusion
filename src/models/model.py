@@ -72,7 +72,7 @@ class SpatialOmicsFusion(nn.Module):
             )
 
         # Expression encoder (used in most modes)
-        if mode not in ("gat_only", "scgpt", "scgpt_only", "scgpt_brain", "scgpt_brain_only", "geneformer", "geneformer_only"):
+        if mode not in ("gat_only", "gcn_only", "scgpt", "scgpt_only", "scgpt_brain", "scgpt_brain_only", "geneformer", "geneformer_only"):
             self.expr_encoder = ExpressionEncoder(
                 n_genes=n_genes, embed_dim=embed_dim,
                 hidden_dim=hidden_dim, n_layers=expr_layers, dropout=dropout,
