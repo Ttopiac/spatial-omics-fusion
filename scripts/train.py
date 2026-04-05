@@ -30,7 +30,7 @@ def main():
     parser.add_argument("--config", type=str, default="configs/default.yaml")
     parser.add_argument("--sample_id", type=str, default=None)
     parser.add_argument("--mode", type=str, default=None,
-                        choices=["expr_only", "gat_only", "concat", "full"])
+                        choices=["expr_only", "gat_only", "concat", "full", "multimodal", "img_expr"])
     parser.add_argument("--fusion_type", type=str, default=None,
                         choices=["gated", "cross_attention"])
     parser.add_argument("--device", type=str, default=None)
@@ -60,6 +60,7 @@ def main():
         train_ratio=cfg["data"]["train_ratio"],
         val_ratio=cfg["data"]["val_ratio"],
         seed=seed,
+        load_image=(mode in ("multimodal", "img_expr")),
     )
     print(f"Data: {data.num_nodes} nodes, {data.edge_index.shape[1]} edges, {data.n_classes} classes")
     print(f"Split: {data.train_mask.sum()} train / {data.val_mask.sum()} val / {data.test_mask.sum()} test\n")

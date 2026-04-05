@@ -45,9 +45,12 @@ class Trainer:
         self.history = []
 
     def _forward(self):
-        """Forward pass with optional scGPT embeddings."""
+        """Forward pass with optional scGPT/image embeddings."""
         scgpt_embed = getattr(self.data, "scgpt_embeddings", None)
-        return self.model(self.data.x, self.data.edge_index, scgpt_embeddings=scgpt_embed)
+        image_feat = getattr(self.data, "image_features", None)
+        return self.model(self.data.x, self.data.edge_index,
+                          scgpt_embeddings=scgpt_embed,
+                          image_features=image_feat)
 
     def train_epoch(self):
         self.model.train()

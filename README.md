@@ -49,11 +49,14 @@ Benchmarked across all 12 DLPFC tissue slices (mean ± std):
 | **MLP + GAT + Cross-Attention** | **0.926 ± 0.024** | **0.896 ± 0.018** | **0.944 ± 0.015** |
 | Frozen scGPT + GAT + Gated | 0.245 ± 0.101 | 0.248 ± 0.050 | 0.401 ± 0.154 |
 | Frozen scGPT + GAT + Cross-Attention | 0.257 ± 0.104 | 0.275 ± 0.047 | 0.416 ± 0.122 |
+| Image + MLP + Cross-Attention (no GAT) | 0.359 | 0.435 | 0.627 |
+| MLP + GAT + Image + Cross-Attention | 0.917 | 0.899 | 0.959 |
 
 **Key findings**:
 - Spatial context is critical: MLP-only → GAT-only improves ARI from 0.37 to 0.92
 - Cross-attention fusion provides the best and most robust performance
 - Frozen scGPT embeddings (pretrained on 33M cells) underperform task-specific MLP, indicating foundation model representations need fine-tuning for spatial domain detection
+- H&E histology image features (ResNet50) provide no additional benefit over the spatial graph — low-resolution Visium images (~15 pixels/spot) lack discriminative morphological detail for cortical layer detection
 
 ## Dataset
 
@@ -116,11 +119,18 @@ spatial-omics-fusion/
 │   └── default.yaml              # All hyperparameters
 ├── data/
 │   └── download_dlpfc.py         # Dataset download script
+├── notebooks/
+│   ├── pipeline_walkthrough.ipynb          # Data + model visualization walkthrough
+│   ├── pipeline_walkthrough_detailed.ipynb # Detailed version with elaborations
+│   ├── model_deepdive.ipynb               # Architecture + training deep dive
+│   └── perturbation_analysis.ipynb        # In-silico gene perturbation analysis
 ├── scripts/
 │   ├── train.py                  # Single model training
 │   ├── run_benchmark.py          # Full benchmark suite
 │   ├── extract_scgpt_embeddings.py  # scGPT embedding extraction
-│   └── visualize.py              # Spatial + t-SNE plots
+│   ├── extract_image_features.py    # H&E image feature extraction (ResNet50)
+│   ├── visualize.py              # Spatial + t-SNE plots
+│   └── visualize_pipeline.py     # Full pipeline visualization
 └── src/
     ├── data/
     │   ├── preprocess.py         # Gene filtering, normalization, KNN graph
@@ -128,6 +138,7 @@ spatial-omics-fusion/
     ├── models/
     │   ├── expression_encoder.py # MLP: 3000 → 128
     │   ├── spatial_encoder.py    # GAT with residual connections
+    │   ├── image_encoder.py      # ResNet50 feature projection: 2048 → 128
     │   ├── fusion.py             # Gated + Cross-Attention fusion
     │   └── model.py              # Full model with ablation modes
     ├── training/
@@ -141,14 +152,16 @@ spatial-omics-fusion/
 
 The model supports multiple configurations via the `--mode` flag:
 
-| Mode | Expression | Spatial | Fusion | Purpose |
-|---|---|---|---|---|
-| `expr_only` | MLP | - | - | Expression-only baseline |
-| `gat_only` | - | GAT | - | Spatial-only baseline |
-| `concat` | MLP | GAT | Concatenate | Simple fusion baseline |
-| `full` | MLP | GAT | Gated/Cross-Attn | Our main model |
-| `scgpt_only` | scGPT proj | - | - | Foundation model baseline |
-| `scgpt` | scGPT proj | GAT | Gated/Cross-Attn | Foundation model + spatial |
+| Mode | Expression | Spatial | Image | Fusion | Purpose |
+|---|---|---|---|---|---|
+| `expr_only` | MLP | - | - | - | Expression-only baseline |
+| `gat_only` | - | GAT | - | - | Spatial-only baseline |
+| `concat` | MLP | GAT | - | Concatenate | Simple fusion baseline |
+| `full` | MLP | GAT | - | Gated/Cross-Attn | Our main model |
+| `scgpt_only` | scGPT proj | - | - | - | Foundation model baseline |
+| `scgpt` | scGPT proj | GAT | - | Gated/Cross-Attn | Foundation model + spatial |
+| `img_expr` | MLP | - | ResNet50 | Cross-Attn | Image replaces spatial graph |
+| `multimodal` | MLP | GAT | ResNet50 | Cross-Attn + Gate | Three-modality fusion |
 
 ## Requirements
 

@@ -16,7 +16,8 @@ from torch_geometric.data import Data
 
 def load_dlpfc_data(sample_id: str, processed_dir: str = "data/processed",
                     train_ratio: float = 0.6, val_ratio: float = 0.2,
-                    seed: int = 42, load_scgpt: bool = False) -> Data:
+                    seed: int = 42, load_scgpt: bool = False,
+                    load_image: bool = False) -> Data:
     """
     Load preprocessed DLPFC data as a PyG Data object.
 
@@ -85,6 +86,17 @@ def load_dlpfc_data(sample_id: str, processed_dir: str = "data/processed",
             raise FileNotFoundError(
                 f"scGPT embeddings not found at {scgpt_path}. "
                 "Run scripts/extract_scgpt_embeddings.py first."
+            )
+
+    # Optionally load image features
+    if load_image:
+        img_path = os.path.join(data_dir, "image_features.pt")
+        if os.path.exists(img_path):
+            data.image_features = torch.load(img_path, weights_only=True)
+        else:
+            raise FileNotFoundError(
+                f"Image features not found at {img_path}. "
+                "Run scripts/extract_image_features.py first."
             )
 
     return data
