@@ -118,6 +118,8 @@ We tested three foundation models with frozen embeddings: scGPT (51M params, who
 
 The reason is pretraining domain mismatch: both models were trained on **dissociated single-cell** RNA-seq, where cells have been physically separated from tissue and all spatial information is destroyed. Their embeddings encode cell-type identity, not tissue position. For a spatial domain detection task, this is the wrong inductive bias — and no amount of model capacity compensates for the missing spatial signal.
 
+This is a verdict on these two specific checkpoints, not on foundation models in general. A foundation model pretrained directly on **spatial** transcriptomics data (Visium, MERFISH, Xenium, etc.) would carry the right inductive bias and could plausibly beat a 2-layer GCN, particularly for low-data slices, cross-tissue transfer, or rare layer types. The takeaway from our experiment is narrower: *match the pretraining domain to the downstream task* — a foundation model is only a head start when it has actually seen data similar to what you are predicting on.
+
 We did not fine-tune scGPT/Geneformer end-to-end. Doing so on a single slice produced *worse* results than the frozen baseline (consistent with Cui et al.'s findings), but a multi-slice fine-tune is on the to-do list.
 
 ### Image modality (ResNet50)

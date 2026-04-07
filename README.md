@@ -15,7 +15,24 @@ A plain **2-layer GCN** with a wide spatial graph (k=96) achieves the best resul
 
 100% interior accuracy means **every remaining error sits at a domain boundary** where the manual annotations themselves are ambiguous. Top-2 accuracy is 1.000 — when the model picks "wrong", the ground-truth label is always its second choice.
 
-> Full ablation tables (16+ variants × 12 slices), foundation-model results, and the GAT/GCN KNN sweeps live in **[docs/RESULTS.md](docs/RESULTS.md)**.
+## vs Foundation Models
+
+A 402K-parameter GCN trained from scratch beats every frozen single-cell foundation model we tested — by a wide margin:
+
+| Model | Pretraining cells | Params | ARI | Boundary Acc |
+|---|---|---|---|---|
+| **GCN-only (k=96), trained from scratch** | — | **402K** | **0.943 ± 0.013** | **0.957 ± 0.009** |
+| Geneformer + GAT + Cross-Attention | 30M dissociated | 10–104M | 0.491 ± 0.132 | 0.427 ± 0.198 |
+| scGPT (brain) + GAT + Gated | 33M dissociated (brain subset) | 51M | 0.327 ± 0.056 | 0.325 ± 0.148 |
+| scGPT + GAT + Cross-Attention | 33M dissociated | 51M | 0.250 ± 0.124 | 0.247 ± 0.076 |
+| Geneformer-only (no spatial) | 30M dissociated | 10–104M | 0.264 ± 0.064 | 0.337 ± 0.100 |
+| scGPT-only (no spatial) | 33M dissociated | 51M | 0.192 ± 0.092 | 0.209 ± 0.068 |
+
+**Why the gap is this large:** scGPT and Geneformer were both pretrained on **dissociated** single-cell RNA-seq — cells physically separated from tissue, with all spatial information destroyed during sample preparation. Their embeddings encode cell-type identity, not tissue position. Spatial domain detection needs the opposite signal: where a spot sits in the tissue, not what individual cell type it most resembles. No amount of model capacity (up to 100×) compensates for this domain mismatch.
+
+This is **not a verdict on foundation models in general** — only on these two, on this task. A foundation model pretrained on **spatial** transcriptomics data (Visium, MERFISH, Xenium, etc.) would presumably encode the right inductive bias and could plausibly outperform a 2-layer GCN, especially in low-data or cross-tissue transfer settings. The lesson here is narrower: *match your pretraining domain to your downstream task.* A 2-layer GCN that starts from the spatial graph is doing the right thing on the right data, while frozen embeddings from a dissociated-cell foundation model are not.
+
+> Full ablation tables (16+ variants × 12 slices), all foundation-model variants, and the GAT/GCN KNN sweeps live in **[docs/RESULTS.md](docs/RESULTS.md)**.
 
 ## Why the Simple Model Wins
 
