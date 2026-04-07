@@ -29,6 +29,9 @@ checkpoints/
 # Jupyter
 .ipynb_checkpoints/
 
+# Notebooks (kept private)
+notebooks/
+
 # OS
 .DS_Store
 Thumbs.db

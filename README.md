@@ -113,9 +113,16 @@ GCN (equal neighbor weighting) outperforms GAT (learned attention) at every k va
 | 4 | 0.897 ± 0.035 | 0.997 ± 0.002 | 0.950 ± 0.013 | 0.678 ± 0.079 | 0.148 ± 0.038 |
 | 6 | 0.922 ± 0.027 | 0.999 ± 0.001 | 0.968 ± 0.009 | 0.778 ± 0.084 | 0.102 ± 0.026 |
 | 8 | 0.919 ± 0.025 | 1.000 ± 0.001 | 0.969 ± 0.007 | 0.803 ± 0.037 | 0.104 ± 0.025 |
-| 12 | **0.931 ± 0.025** | 1.000 ± 0.000 | 0.981 ± 0.007 | 0.857 ± 0.033 | 0.082 ± 0.021 |
-| 18 | 0.930 ± 0.025 | 1.000 ± 0.000 | 0.986 ± 0.006 | 0.889 ± 0.020 | **0.079 ± 0.020** |
-| 24 | **0.932 ± 0.025** | **1.000 ± 0.000** | **0.992 ± 0.003** | **0.901 ± 0.021** | 0.079 ± 0.024 |
+| 12 | 0.931 ± 0.025 | 1.000 ± 0.000 | 0.981 ± 0.007 | 0.857 ± 0.033 | 0.082 ± 0.021 |
+| 18 | 0.930 ± 0.025 | 1.000 ± 0.000 | 0.986 ± 0.006 | 0.889 ± 0.020 | 0.079 ± 0.020 |
+| 24 | 0.932 ± 0.025 | 1.000 ± 0.000 | 0.992 ± 0.003 | 0.901 ± 0.021 | 0.079 ± 0.024 |
+| 48 | 0.938 ± 0.024 | 1.000 ± 0.000 | 0.999 ± 0.001 | 0.939 ± 0.017 | 0.079 ± 0.019 |
+| 64 | 0.938 ± 0.017 | 1.000 ± 0.000 | 0.999 ± 0.001 | 0.944 ± 0.014 | 0.074 ± 0.019 |
+| **96** | **0.943 ± 0.013** | **1.000 ± 0.000** | **1.000 ± 0.000** | 0.957 ± 0.009 | **0.070 ± 0.018** |
+| 128 | 0.939 ± 0.015 | 1.000 ± 0.000 | 1.000 ± 0.000 | 0.957 ± 0.009 | 0.080 ± 0.020 |
+| 192 | 0.942 ± 0.016 | 1.000 ± 0.000 | 1.000 ± 0.000 | **0.960 ± 0.017** | 0.084 ± 0.029 |
+
+ARI peaks at k=96 (0.943) then plateaus. Boundary accuracy continues drifting up to 96.0% at k=192. Interior accuracy reaches 100% from k=96 onward — every error is at a domain boundary.
 
 **Key findings**:
 - Spatial context is critical: MLP-only → GAT-only improves ARI from 0.36 to 0.92
@@ -126,7 +133,7 @@ GCN (equal neighbor weighting) outperforms GAT (learned attention) at every k va
 - H&E histology image features (ResNet50) provide no additional benefit over the spatial graph — low-resolution Visium images (~15 pixels/spot) lack discriminative morphological detail
 - All spatial models with MLP encoding achieve ~99.8% top-2 accuracy and ~97% interior accuracy — the remaining errors are at domain boundaries where the ground truth itself is ambiguous
 - Boundary accuracy (~78%) represents the annotation noise floor, not model failure — these spots sit at biological transitions between adjacent cortical layers
-- GCN (equal neighbor weighting) outperforms GAT (learned attention) at every k value — the attention mechanism adds no benefit for this task. The simplest model (GCN k=24, 402K params) achieves the best overall results: ARI=0.932, 90.1% boundary accuracy
+- GCN (equal neighbor weighting) outperforms GAT (learned attention) at every k value — the attention mechanism adds no benefit for this task. The simplest model (GCN k=96, 402K params) achieves the best overall results: **ARI=0.943, 95.7% boundary accuracy, 100% interior accuracy**. The curve plateaus beyond k=96, confirming that diminishing returns set in once each spot has enough spatial context
 
 ## Dataset
 
