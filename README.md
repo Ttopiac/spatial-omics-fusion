@@ -1,255 +1,94 @@
 # Spatial Omics Fusion
 
-Multimodal architecture for spatial transcriptomics domain detection, combining gene expression encoding (MLP) with spatial graph context (GAT) via cross-attention fusion.
+A benchmark study of graph neural networks for spatial transcriptomics domain detection on the human DLPFC dataset. We compare graph encoders (GCN, GAT), fusion architectures (concatenation, gated, cross-attention), foundation models (scGPT, Geneformer), and image features (ResNet50) — and find that **the simplest model wins**.
 
-Achieves **0.926 ARI** on the DLPFC benchmark (12 slices) with only **1.1M parameters**, training in under 30 seconds per slice.
+## Headline Result
+
+A plain **2-layer GCN** with a wide spatial graph (k=96) achieves the best results across the board:
+
+| | ARI | Top-2 Acc | Interior Acc | Boundary Acc | Params |
+|---|---|---|---|---|---|
+| **GCN-only (k=96)** | **0.943 ± 0.013** | **1.000** | **1.000** | **0.957 ± 0.009** | **402K** |
+| MLP + GAT + Cross-Attention (k=6) | 0.928 ± 0.022 | 0.998 | 0.968 | 0.775 ± 0.045 | 1.1M |
+| MLP + GCN + Cross-Attention (k=96) | 0.857 ± 0.073 | 0.995 | 0.999 | 0.883 ± 0.034 | 1.2M |
+| MLP-only (no spatial) | 0.356 ± 0.068 | 0.797 | 0.616 | 0.356 ± 0.081 | 0.8M |
+
+100% interior accuracy means **every remaining error sits at a domain boundary** where the manual annotations themselves are ambiguous. Top-2 accuracy is 1.000 — when the model picks "wrong", the ground-truth label is always its second choice.
+
+> Full ablation tables (16+ variants × 12 slices), foundation-model results, and the GAT/GCN KNN sweeps live in **[docs/RESULTS.md](docs/RESULTS.md)**.
+
+## Why the Simple Model Wins
+
+Three findings, in order of how much they surprised us:
+
+1. **Graph construction matters more than model architecture.** Increasing the spatial graph from k=6 to k=96 improved GCN-only ARI from 0.922 to 0.943 — a bigger gain than any fusion strategy delivered. The right data representation beats sophisticated fusion.
+2. **GCN beats GAT at every k.** Learned attention weights add no benefit once each spot has enough neighbors — most neighbors are same-domain, so equal averaging is fine, and attention just adds optimization noise.
+3. **Adding MLP + Cross-Attention on top of GCN hurts.** MLP+GCN+CrossAttn at k=96 drops to 0.857 ARI. The expression MLP and the cross-attention layer each add ~0.4M parameters of nuisance variance that the lean GCN avoids.
+
+The complex fusion models are not useless — they offer **per-spot interpretability** (you can read which neighbors and which gene-expression channels each spot attended to). For pure accuracy on this task, plain GCN is the right choice.
 
 ## Architecture
 
 ```
-Gene Expression (3000 dims)
-        │
-   MLP Encoder
-        │
-        ▼
-Expression Embedding (128) ────────────────────────┐
-        │                                          │
-        ▼                                          │
-   GAT Encoder (aggregates spatial neighbors)      │
-        │                                          │
-        ▼                                          │
-Spatial Embedding (128)                            │
-        │                                          │
-        ▼                                          │
-Cross-Attention Fusion                             │
-Q = Expression (right path) ◄──────────────────────┘
-K/V = Spatial (left path)
-        │
-        ▼
-Classification Head ──→ Domain Prediction (5-7 classes)
+Gene Expression (3000 HVGs per spot)        Spatial coordinates (x, y)
+              │                                       │
+              │                              k=96 KNN graph
+              │                                       │
+              └─────────────────┬─────────────────────┘
+                                ▼
+                  GCN Encoder (2 layers)
+                  mean-aggregates over 96 neighbors
+                                │
+                                ▼
+                       Spot Embedding (128)
+                                │
+                                ▼
+                       Classification Head ──→ Cortical Layer (5–7 classes)
 ```
 
-**Expression Encoder**: 2-layer MLP compresses 3,000 highly variable genes into a 128-dim embedding.
-
-**Spatial Encoder**: 2-layer Graph Attention Network aggregates neighbor information over a k=6 spatial KNN graph, using expression embeddings as node features.
-
-**Cross-Attention Fusion**: Expression embedding serves as query; spatial embeddings of graph neighbors serve as keys/values. Each spot selectively attends to relevant neighbors.
-
-## Results
-
-Benchmarked across all 12 DLPFC tissue slices (mean ± std):
-
-### Standard Metrics
-
-| Model | ARI | NMI | Accuracy |
-|---|---|---|---|
-| MLP-only (no spatial) | 0.356 ± 0.068 | 0.328 ± 0.043 | 0.607 ± 0.047 |
-| Image + MLP + Cross-Attention | 0.447 ± 0.147 | 0.427 ± 0.065 | 0.659 ± 0.084 |
-| scGPT-only (no spatial) | 0.192 ± 0.092 | 0.190 ± 0.045 | 0.334 ± 0.151 |
-| scGPT + GAT + Gated | 0.256 ± 0.093 | 0.256 ± 0.048 | 0.348 ± 0.163 |
-| scGPT + GAT + Cross-Attention | 0.250 ± 0.124 | 0.254 ± 0.062 | 0.330 ± 0.162 |
-| scGPT (brain)-only (no spatial) | 0.187 ± 0.078 | 0.196 ± 0.035 | 0.332 ± 0.127 |
-| scGPT (brain) + GAT + Gated | 0.327 ± 0.056 | 0.341 ± 0.061 | 0.450 ± 0.176 |
-| scGPT (brain) + GAT + Cross-Attention | 0.318 ± 0.109 | 0.313 ± 0.074 | 0.414 ± 0.163 |
-| Geneformer-only (no spatial) | 0.264 ± 0.064 | 0.283 ± 0.087 | 0.498 ± 0.085 |
-| Geneformer + GAT + Cross-Attention | 0.491 ± 0.132 | 0.483 ± 0.145 | 0.618 ± 0.200 |
-| GAT-only (k=6) | 0.919 ± 0.029 | 0.892 ± 0.018 | 0.958 ± 0.013 |
-| MLP + GAT + Concat (k=6) | 0.917 ± 0.026 | 0.888 ± 0.015 | 0.956 ± 0.011 |
-| MLP + GAT + Gated (k=6) | 0.920 ± 0.027 | 0.890 ± 0.017 | 0.958 ± 0.012 |
-| GAT-only (k=12) | 0.924 ± 0.028 | 0.898 ± 0.018 | 0.960 ± 0.012 |
-| GCN-only (k=6) | 0.922 ± 0.027 | 0.893 ± 0.017 | 0.959 ± 0.011 |
-| GCN-only (k=12) | 0.931 ± 0.025 | 0.898 ± 0.018 | 0.960 ± 0.012 |
-| GCN-only (k=24) | **0.932 ± 0.025** | **0.924 ± 0.018** | **0.968 ± 0.013** |
-| MLP + GAT + Cross-Attention (k=6) | 0.928 ± 0.022 | 0.896 ± 0.011 | 0.960 ± 0.008 |
-| MLP + GAT + Image + Cross-Attention (k=6) | 0.928 ± 0.023 | 0.899 ± 0.014 | 0.961 ± 0.010 |
-
-### Boundary-Aware Metrics
-
-All spatial models achieve ~99.8% top-2 accuracy — when the model is "wrong", the true label is almost always its second choice. Errors occur exclusively at domain boundaries where ground truth annotations are inherently ambiguous.
-
-| Model | Top-2 Acc | Interior Acc | Boundary Acc | Log-Loss |
-|---|---|---|---|---|
-| MLP-only (no spatial) | 0.797 ± 0.043 | 0.616 ± 0.047 | 0.356 ± 0.081 | 1.315 ± 0.185 |
-| Image + MLP + Cross-Attention | 0.837 ± 0.059 | 0.669 ± 0.083 | 0.390 ± 0.129 | 0.998 ± 0.249 |
-| scGPT-only (no spatial) | 0.583 ± 0.135 | 0.339 ± 0.154 | 0.209 ± 0.068 | 1.727 ± 0.170 |
-| scGPT + GAT + Gated | 0.546 ± 0.183 | 0.352 ± 0.168 | 0.264 ± 0.093 | 1.524 ± 0.200 |
-| scGPT + GAT + Cross-Attention | 0.541 ± 0.188 | 0.333 ± 0.166 | 0.247 ± 0.076 | 1.697 ± 0.214 |
-| scGPT (brain)-only (no spatial) | 0.582 ± 0.094 | 0.336 ± 0.129 | 0.230 ± 0.080 | 1.589 ± 0.216 |
-| scGPT (brain) + GAT + Gated | 0.710 ± 0.151 | 0.455 ± 0.180 | 0.325 ± 0.148 | 1.235 ± 0.249 |
-| scGPT (brain) + GAT + Cross-Attention | 0.657 ± 0.158 | 0.419 ± 0.164 | 0.255 ± 0.141 | 1.410 ± 0.335 |
-| Geneformer-only (no spatial) | 0.713 ± 0.081 | 0.504 ± 0.090 | 0.337 ± 0.100 | 1.338 ± 0.230 |
-| Geneformer + GAT + Cross-Attention | 0.829 ± 0.117 | 0.624 ± 0.201 | 0.427 ± 0.198 | 0.933 ± 0.386 |
-| GAT-only (k=6) | 0.999 ± 0.001 | 0.965 ± 0.010 | 0.775 ± 0.083 | 0.114 ± 0.033 |
-| MLP + GAT + Concat (k=6) | 0.999 ± 0.001 | 0.964 ± 0.008 | 0.787 ± 0.078 | 0.111 ± 0.025 |
-| MLP + GAT + Gated (k=6) | 0.999 ± 0.001 | 0.966 ± 0.009 | 0.785 ± 0.093 | 0.120 ± 0.027 |
-| GAT-only (k=12) | 1.000 ± 0.000 | 0.976 ± 0.010 | 0.859 ± 0.034 | 0.100 ± 0.026 |
-| GCN-only (k=6) | 0.999 ± 0.001 | 0.968 ± 0.009 | 0.778 ± 0.084 | 0.102 ± 0.026 |
-| GCN-only (k=12) | 1.000 ± 0.000 | 0.981 ± 0.007 | 0.857 ± 0.033 | 0.082 ± 0.021 |
-| GCN-only (k=24) | **1.000 ± 0.000** | **0.992 ± 0.003** | **0.901 ± 0.021** | **0.079 ± 0.024** |
-| MLP + GAT + Cross-Attention (k=6) | 0.998 ± 0.002 | 0.968 ± 0.006 | 0.775 ± 0.045 | 0.114 ± 0.017 |
-| MLP + GAT + Image + Cross-Attention (k=6) | 0.999 ± 0.001 | 0.968 ± 0.009 | 0.771 ± 0.075 | 0.107 ± 0.026 |
-
-### KNN Neighbor Ablation (GAT-only, all 12 slices)
-
-Graph construction matters more than model architecture. Increasing k from 6 to 12 improves performance more than adding cross-attention fusion.
-
-| k | ARI | Top-2 Acc | Interior Acc | Boundary Acc | Log-Loss |
-|---|---|---|---|---|---|
-| 4 | 0.896 ± 0.040 | 0.996 ± 0.004 | 0.949 ± 0.017 | 0.666 ± 0.107 | 0.162 ± 0.045 |
-| 6 (default) | 0.919 ± 0.029 | 0.999 ± 0.001 | 0.965 ± 0.010 | 0.775 ± 0.083 | 0.114 ± 0.033 |
-| 8 | 0.913 ± 0.031 | 1.000 ± 0.000 | 0.966 ± 0.010 | 0.789 ± 0.048 | 0.119 ± 0.032 |
-| 12 | **0.924 ± 0.028** | 1.000 ± 0.000 | 0.976 ± 0.010 | 0.859 ± 0.034 | **0.100 ± 0.026** |
-| 18 | 0.919 ± 0.029 | 1.000 ± 0.000 | 0.986 ± 0.005 | 0.861 ± 0.032 | **0.100 ± 0.032** |
-| 24 | 0.916 ± 0.026 | **1.000 ± 0.000** | **0.991 ± 0.005** | **0.872 ± 0.022** | 0.110 ± 0.037 |
-
-GAT-only with k=12 achieves ARI=0.924 — matching MLP+GAT+Cross-Attention at k=6 (ARI=0.928) with a much simpler architecture. Key observations: ARI peaks at k=12 then declines (distant neighbors add noise), while boundary accuracy continues improving with larger k (more context helps at transitions). Interior accuracy approaches 99% at k=24, confirming that errors in interior regions are near-zero.
-
-### GCN KNN Ablation (all 12 slices)
-
-GCN (equal neighbor weighting) outperforms GAT (learned attention) at every k value. The simpler model wins — attention weights don't help when you have enough spatial context.
-
-| k | ARI | Top-2 Acc | Interior Acc | Boundary Acc | Log-Loss |
-|---|---|---|---|---|---|
-| 4 | 0.897 ± 0.035 | 0.997 ± 0.002 | 0.950 ± 0.013 | 0.678 ± 0.079 | 0.148 ± 0.038 |
-| 6 | 0.922 ± 0.027 | 0.999 ± 0.001 | 0.968 ± 0.009 | 0.778 ± 0.084 | 0.102 ± 0.026 |
-| 8 | 0.919 ± 0.025 | 1.000 ± 0.001 | 0.969 ± 0.007 | 0.803 ± 0.037 | 0.104 ± 0.025 |
-| 12 | 0.931 ± 0.025 | 1.000 ± 0.000 | 0.981 ± 0.007 | 0.857 ± 0.033 | 0.082 ± 0.021 |
-| 18 | 0.930 ± 0.025 | 1.000 ± 0.000 | 0.986 ± 0.006 | 0.889 ± 0.020 | 0.079 ± 0.020 |
-| 24 | 0.932 ± 0.025 | 1.000 ± 0.000 | 0.992 ± 0.003 | 0.901 ± 0.021 | 0.079 ± 0.024 |
-| 48 | 0.938 ± 0.024 | 1.000 ± 0.000 | 0.999 ± 0.001 | 0.939 ± 0.017 | 0.079 ± 0.019 |
-| 64 | 0.938 ± 0.017 | 1.000 ± 0.000 | 0.999 ± 0.001 | 0.944 ± 0.014 | 0.074 ± 0.019 |
-| **96** | **0.943 ± 0.013** | **1.000 ± 0.000** | **1.000 ± 0.000** | 0.957 ± 0.009 | **0.070 ± 0.018** |
-| 128 | 0.939 ± 0.015 | 1.000 ± 0.000 | 1.000 ± 0.000 | 0.957 ± 0.009 | 0.080 ± 0.020 |
-| 192 | 0.942 ± 0.016 | 1.000 ± 0.000 | 1.000 ± 0.000 | **0.960 ± 0.017** | 0.084 ± 0.029 |
-
-ARI peaks at k=96 (0.943) then plateaus. Boundary accuracy continues drifting up to 96.0% at k=192. Interior accuracy reaches 100% from k=96 onward — every error is at a domain boundary.
-
-**Key findings**:
-- Spatial context is critical: MLP-only → GAT-only improves ARI from 0.36 to 0.92
-- **Graph construction (choosing k) is a bigger lever than model architecture (fusion strategy)** — GAT-only with k=12 (ARI=0.924, 100% top-2, 85.9% boundary) nearly matches MLP+GAT+Cross-Attention at k=6 (ARI=0.928) on ARI, and significantly outperforms it on boundary accuracy (85.9% vs 77.5%) and top-2 accuracy (100% vs 99.8%)
-- MLP+GAT+Cross-Attention at k=6 achieves the highest ARI (0.928), but GAT-only at k=12 is the best model on boundary-aware metrics with a simpler architecture (~130K vs 1.1M parameters)
-- k=12 is the sweet spot: ARI peaks, then declines as too-distant neighbors dilute signal. Boundary accuracy continues improving with larger k (more context helps at transitions)
-- Foundation models (scGPT, Geneformer) with frozen embeddings underperform task-specific MLP encoding — Geneformer is the strongest foundation model (0.491 ARI with spatial) but still far below GAT-only (0.919). These models were pretrained on dissociated cells with no spatial structure, which is the fundamental limitation
-- H&E histology image features (ResNet50) provide no additional benefit over the spatial graph — low-resolution Visium images (~15 pixels/spot) lack discriminative morphological detail
-- All spatial models with MLP encoding achieve ~99.8% top-2 accuracy and ~97% interior accuracy — the remaining errors are at domain boundaries where the ground truth itself is ambiguous
-- Boundary accuracy (~78%) represents the annotation noise floor, not model failure — these spots sit at biological transitions between adjacent cortical layers
-- GCN (equal neighbor weighting) outperforms GAT (learned attention) at every k value — the attention mechanism adds no benefit for this task. The simplest model (GCN k=96, 402K params) achieves the best overall results: **ARI=0.943, 95.7% boundary accuracy, 100% interior accuracy**. The curve plateaus beyond k=96, confirming that diminishing returns set in once each spot has enough spatial context
+We also implement an MLP expression encoder, a GAT spatial encoder, gated and cross-attention fusion, image-feature (ResNet50) and foundation-model (scGPT, Geneformer) inputs. All variants are selectable via the `--mode` flag — see [docs/RESULTS.md](docs/RESULTS.md) for the full comparison.
 
 ## Dataset
 
-**Human DLPFC** (Dorsolateral Prefrontal Cortex) — the standard benchmark for spatial transcriptomics methods.
-
-- 12 tissue slices from 3 donors
-- ~3,500–4,800 spots per slice (~47K total)
-- 33,538 genes per spot → 3,000 after HVG selection
-- 5–7 annotated cortical layers per slice (ground truth)
-- Source: Maynard et al., *Nature Neuroscience* 2021
+**Human DLPFC** (Maynard et al., *Nature Neuroscience* 2021) — 12 tissue slices from 3 donors, ~47K spots, 33,538 genes per spot (filtered to 3,000 highly variable), 5–7 manually annotated cortical layers per slice.
 
 ## Setup
 
 ```bash
-# Clone and set up environment
 git clone https://github.com/Ttopiac/spatial-omics-fusion.git
 cd spatial-omics-fusion
 bash setup_env.sh        # auto-detects CUDA vs CPU/MPS
 conda activate spatial-omics
-
-# Download data
 python data/download_dlpfc.py --all
 ```
 
 ## Usage
 
-**Train a single model:**
 ```bash
-# Default: slice 151673, cross-attention fusion
-python scripts/train.py
+# Train the headline model on one slice
+python scripts/train.py --mode gcn_only --sample_id 151673
 
-# Specific configuration
-python scripts/train.py --mode full --fusion_type cross_attention --sample_id 151673 --device cuda
-```
-
-**Run full benchmark (all 5 ablations × 12 slices):**
-```bash
+# Run the full benchmark (all modes × 12 slices)
 python scripts/run_benchmark.py --device cuda
 ```
 
-**Extract scGPT embeddings (requires GPU):**
-```bash
-# Download scGPT pretrained weights first (see scripts/extract_scgpt_embeddings.py)
-python scripts/extract_scgpt_embeddings.py
-
-# Then benchmark scGPT variants
-python scripts/run_benchmark.py --mode scgpt --fusion_type cross_attention --device cuda
-```
-
-**Generate visualizations:**
-```bash
-python scripts/visualize.py --sample_id 151673
-```
+See [docs/RESULTS.md](docs/RESULTS.md) for the full mode list, foundation-model setup, and reproducing each ablation.
 
 ## Project Structure
 
 ```
 spatial-omics-fusion/
-├── configs/
-│   └── default.yaml              # All hyperparameters
-├── data/
-│   └── download_dlpfc.py         # Dataset download script
-├── notebooks/
-│   ├── pipeline_walkthrough.ipynb          # Data + model visualization walkthrough
-│   ├── pipeline_walkthrough_detailed.ipynb # Detailed version with elaborations
-│   ├── model_deepdive.ipynb               # Architecture + training deep dive
-│   └── perturbation_analysis.ipynb        # In-silico gene perturbation analysis
-├── scripts/
-│   ├── train.py                  # Single model training
-│   ├── run_benchmark.py          # Full benchmark suite
-│   ├── extract_scgpt_embeddings.py  # scGPT embedding extraction
-│   ├── extract_image_features.py    # H&E image feature extraction (ResNet50)
-│   ├── visualize.py              # Spatial + t-SNE plots
-│   └── visualize_pipeline.py     # Full pipeline visualization
+├── configs/default.yaml         # Hyperparameters
+├── data/download_dlpfc.py       # Dataset download
+├── docs/RESULTS.md              # Full ablation report
+├── scripts/                     # Training, benchmarks, visualizations
 └── src/
-    ├── data/
-    │   ├── preprocess.py         # Gene filtering, normalization, KNN graph
-    │   └── dataset.py            # PyG Data loader with train/val/test splits
-    ├── models/
-    │   ├── expression_encoder.py # MLP: 3000 → 128
-    │   ├── spatial_encoder.py    # GAT with residual connections
-    │   ├── image_encoder.py      # ResNet50 feature projection: 2048 → 128
-    │   ├── fusion.py             # Gated + Cross-Attention fusion
-    │   └── model.py              # Full model with ablation modes
-    ├── training/
-    │   └── trainer.py            # Training loop, early stopping, class weighting
-    └── utils/
-        ├── metrics.py            # ARI, NMI, accuracy
-        └── visualization.py      # Spatial domain + embedding plots
+    ├── data/                    # Preprocessing, KNN graph, dataset loaders
+    ├── models/                  # MLP, GCN, GAT, fusion, image, foundation
+    ├── training/trainer.py
+    └── utils/                   # Metrics, visualization
 ```
-
-## Ablation Modes
-
-The model supports multiple configurations via the `--mode` flag:
-
-| Mode | Expression | Spatial | Image | Fusion | Purpose |
-|---|---|---|---|---|---|
-| `expr_only` | MLP | - | - | - | Expression-only baseline |
-| `gat_only` | - | GAT | - | - | Spatial-only baseline |
-| `concat` | MLP | GAT | - | Concatenate | Simple fusion baseline |
-| `full` | MLP | GAT | - | Gated/Cross-Attn | Our main model |
-| `scgpt_only` | scGPT proj | - | - | - | Foundation model baseline |
-| `scgpt` | scGPT proj | GAT | - | Gated/Cross-Attn | Foundation model + spatial |
-| `scgpt_brain_only` | scGPT (brain) proj | - | - | - | Brain-specific scGPT baseline |
-| `scgpt_brain` | scGPT (brain) proj | GAT | - | Gated/Cross-Attn | Brain-specific scGPT + spatial |
-| `geneformer_only` | Geneformer proj | - | - | - | Geneformer baseline |
-| `geneformer` | Geneformer proj | GAT | - | Gated/Cross-Attn | Geneformer + spatial |
-| `img_expr` | MLP | - | ResNet50 | Cross-Attn | Image replaces spatial graph |
-| `multimodal` | MLP | GAT | ResNet50 | Cross-Attn + Gate | Three-modality fusion |
 
 ## Requirements
 
-- Python 3.10
-- PyTorch >= 2.0
-- PyTorch Geometric
-- scanpy, squidpy
-- scikit-learn, matplotlib
-
-See `setup_env.sh` for full installation.
+Python 3.10, PyTorch ≥ 2.0, PyTorch Geometric, scanpy, squidpy, scikit-learn. See `setup_env.sh`.

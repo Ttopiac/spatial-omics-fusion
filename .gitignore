@@ -43,7 +43,8 @@ Thumbs.db
 # Weights & Biases
 wandb/
 
-# Markdown (except CLAUDE.md and README.md)
+# Markdown (except CLAUDE.md, README.md, and docs/)
 *.md
 !CLAUDE.md
 !README.md
+!docs/*.md
