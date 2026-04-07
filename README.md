@@ -1,6 +1,14 @@
 # Spatial Omics Fusion
 
-A benchmark study of graph neural networks for spatial transcriptomics domain detection on the human DLPFC dataset. We compare graph encoders (GCN, GAT), fusion architectures (concatenation, gated, cross-attention), foundation models (scGPT, Geneformer), and image features (ResNet50) — and find that **the simplest model wins**.
+## The Task
+
+Given a slice of human brain tissue measured by spatial transcriptomics, **assign every tissue spot to one of the 5–7 cortical layers** (Layer 1 through Layer 6 + white matter). Each spot reports the expression of ~33,000 genes plus an (x, y) coordinate on the slide. The benchmark is the human **DLPFC** dataset (Maynard et al., *Nature Neuroscience* 2021): 12 brain tissue slices from 3 donors, ~47,000 spots total, with manually annotated layer labels we treat as ground truth.
+
+This is a per-spot multi-class classification problem on graph-structured biological data — the same shape as many drug-discovery and disease-biology questions where you have to label cells, spots, or genes from a mix of measurements and spatial / network context.
+
+## What This Repo Does
+
+A benchmark study of graph neural networks and modality-fusion strategies for the task above. We compare graph encoders (GCN, GAT), fusion architectures (concatenation, gated, cross-attention), foundation models (scGPT, Geneformer), and image features (ResNet50) on all 12 slices — and find that **the simplest model wins**.
 
 ## Headline Result
 
@@ -38,13 +46,24 @@ This is **not a verdict on foundation models in general** — only on these two,
 
 ## Why the Simple Model Wins
 
-Three findings, in order of how much they surprised us:
+### What each encoder actually represents
 
-1. **Graph construction matters more than model architecture.** Increasing the spatial graph from k=6 to k=96 improved GCN-only ARI from 0.922 to 0.943 — a bigger gain than any fusion strategy delivered. The right data representation beats sophisticated fusion.
-2. **GCN beats GAT at every k.** Learned attention weights add no benefit once each spot has enough neighbors — most neighbors are same-domain, so equal averaging is fine, and attention just adds optimization noise.
-3. **Adding MLP + Cross-Attention on top of GCN hurts.** MLP+GCN+CrossAttn at k=96 drops to 0.857 ARI. The expression MLP and the cross-attention layer each add ~0.4M parameters of nuisance variance that the lean GCN avoids.
+The MLP and the GCN look at the same 3,000-dim gene expression vector — but they encode fundamentally different things:
 
-The complex fusion models are not useless — they offer **per-spot interpretability** (you can read which neighbors and which gene-expression channels each spot attended to). For pure accuracy on this task, plain GCN is the right choice.
+- **MLP encoder** sees only **one spot at a time**. Its embedding answers "*which genes are active in this single spot, in isolation?*" — i.e., a per-spot transcriptional fingerprint. It cannot see neighbors.
+- **GCN encoder** sees the spot **plus a 96-spot neighborhood**, and at each layer it averages neighbor features. Its embedding answers "*what does the local tissue patch around this spot look like, on average?*" — i.e., a denoised, spatially-pooled expression profile.
+
+For cortical layer detection, the second question is much closer to the right one. Cortical layers are large contiguous tissue regions, so a spot's true layer is far better predicted by its neighborhood's average expression (GCN) than by its own noisy gene counts (MLP). Per-spot expression is also dropout-heavy at Visium resolution — pooling over 96 neighbors averages out the noise.
+
+This is why **spatial information dominates this task**. Adding spatial context lifts ARI from **0.36 (MLP-only)** → **0.94 (GCN k=96)**, a +0.58 jump that no fusion architecture or foundation model has come close to closing. Once GCN has the spatial signal, the per-spot MLP features become redundant (they are already inside the GCN input) and adding an MLP+Cross-Attention path on top just injects nuisance variance — which is exactly why **MLP+GCN+CrossAttn drops to 0.857 ARI**.
+
+### Three takeaways
+
+1. **Spatial context is the dominant signal.** Going from no-spatial (MLP-only) to spatial (GCN-only) improves ARI by 0.58. No fusion strategy, no foundation model, and no image modality moves the needle by even a tenth of that.
+2. **Graph construction matters more than model architecture.** Increasing k from 6 to 96 (still GCN-only) improves ARI from 0.922 to 0.943 — a bigger gain than any fusion strategy ever delivered. With enough neighbors, even a 2-layer GCN saturates the task.
+3. **GCN beats GAT at every k.** Once each spot has enough neighbors, most of them share its label and equal averaging is already an excellent estimator. GAT's attention weights have nothing useful to do — they just add learnable parameters that need to be fit.
+
+The fusion models (cross-attention, gated) are not useless: they offer **per-spot interpretability** (you can read which neighbors and which gene channels each spot attended to). For pure accuracy on this task, though, plain GCN is the right choice.
 
 ## Architecture
 
