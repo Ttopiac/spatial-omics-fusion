@@ -114,7 +114,7 @@ If the goal is *just* clustering, use GCN. If the goal is biological interpretat
 
 ### Foundation models (scGPT, Geneformer)
 
-We tested three foundation models with frozen embeddings: scGPT (51M params, whole-human checkpoint), scGPT-brain (brain-specific checkpoint), and Geneformer (10–104M params). All three underperformed even GAT-only by a wide margin. The strongest configuration (Geneformer + GAT + Cross-Attention) reaches 0.491 ARI, vs 0.919 for GAT-only at k=6.
+We tested three foundation models with frozen embeddings: scGPT (51M params, whole-human checkpoint), scGPT-brain (brain-specific checkpoint), and Geneformer (104M params). All three underperformed even GAT-only by a wide margin. The strongest configuration (Geneformer + GAT + Cross-Attention) reaches 0.491 ARI, vs 0.919 for GAT-only at k=6.
 
 The reason is pretraining domain mismatch: both models were trained on **dissociated single-cell** RNA-seq, where cells have been physically separated from tissue and all spatial information is destroyed. Their embeddings encode cell-type identity, not tissue position. For a spatial domain detection task, this is the wrong inductive bias — and no amount of model capacity compensates for the missing spatial signal.
 

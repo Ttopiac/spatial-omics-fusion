@@ -22,11 +22,13 @@ A 402K-parameter GCN trained from scratch beats every frozen single-cell foundat
 | Model | Pretraining cells | Params | ARI | Boundary Acc |
 |---|---|---|---|---|
 | **GCN-only (k=96), trained from scratch** | — | **402K** | **0.943 ± 0.013** | **0.957 ± 0.009** |
-| Geneformer + GAT + Cross-Attention | 30M dissociated | 10–104M | 0.491 ± 0.132 | 0.427 ± 0.198 |
+| Geneformer + GAT + Cross-Attention | 30M dissociated | 104M | 0.491 ± 0.132 | 0.427 ± 0.198 |
 | scGPT (brain) + GAT + Gated | 33M dissociated (brain subset) | 51M | 0.327 ± 0.056 | 0.325 ± 0.148 |
 | scGPT + GAT + Cross-Attention | 33M dissociated | 51M | 0.250 ± 0.124 | 0.247 ± 0.076 |
-| Geneformer-only (no spatial) | 30M dissociated | 10–104M | 0.264 ± 0.064 | 0.337 ± 0.100 |
+| Geneformer-only (no spatial) | 30M dissociated | 104M | 0.264 ± 0.064 | 0.337 ± 0.100 |
 | scGPT-only (no spatial) | 33M dissociated | 51M | 0.192 ± 0.092 | 0.209 ± 0.068 |
+
+We used the publicly released checkpoints: scGPT (51M params, whole-human and brain-specific) and Geneformer-V2-104M. Geneformer is also released in smaller sizes (10M, 30M); we report the 104M variant since it is the largest and gives the strongest foundation-model baseline.
 
 **Why the gap is this large:** scGPT and Geneformer were both pretrained on **dissociated** single-cell RNA-seq — cells physically separated from tissue, with all spatial information destroyed during sample preparation. Their embeddings encode cell-type identity, not tissue position. Spatial domain detection needs the opposite signal: where a spot sits in the tissue, not what individual cell type it most resembles. No amount of model capacity (up to 100×) compensates for this domain mismatch.
 
