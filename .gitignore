@@ -15,6 +15,7 @@ env/
 # Data (raw and processed are large)
 data/raw/
 data/processed/
+data/processed_*/
 
 # Results, checkpoints, and model weights
 results/**
