@@ -91,6 +91,10 @@ GAT-only ARI peaks at **k=12** (0.924) and degrades for larger k. The attention 
 
 GCN-only keeps improving until k≈96 and then plateaus. Unlike GAT, equal-weight averaging scales gracefully with the neighborhood size. From k=96 onward, **interior accuracy is 100%** — every remaining error sits at a domain boundary.
 
+![Ground truth vs. GCN-only (k=96) predictions, slice 151673](figures/ground_truth_vs_gcn_k96.png)
+
+Slice 151673, held-out test spots: ARI 0.9408. Errors are visibly concentrated at the layer boundaries — consistent with the 95.7% boundary accuracy / 100% interior accuracy split above.
+
 ## 5. Discussion of Model Variants
 
 ### Why GCN beats GAT here
