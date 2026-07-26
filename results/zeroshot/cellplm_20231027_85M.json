@@ -1,0 +1,136 @@
+{
+  "method": "cellplm",
+  "tag": "cellplm_20231027_85M",
+  "n_slices": 12,
+  "summary": {
+    "embedding_readout": {
+      "ari_mean": 0.1814603239283629,
+      "ari_std": 0.049630699298441924,
+      "nmi_mean": 0.3050574378124618,
+      "nmi_std": 0.08200989583067585,
+      "n_slices": 12
+    }
+  },
+  "per_slice": [
+    {
+      "sample_id": "151507",
+      "n_classes": 7,
+      "model": "CellPLM-20231027_85M",
+      "embedding_readout": {
+        "ari": 0.18354731990966192,
+        "nmi": 0.3339819967988757,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151508",
+      "n_classes": 7,
+      "model": "CellPLM-20231027_85M",
+      "embedding_readout": {
+        "ari": 0.17287730427582831,
+        "nmi": 0.2839189249339637,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151509",
+      "n_classes": 7,
+      "model": "CellPLM-20231027_85M",
+      "embedding_readout": {
+        "ari": 0.2190945527872471,
+        "nmi": 0.3644325389842042,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151510",
+      "n_classes": 7,
+      "model": "CellPLM-20231027_85M",
+      "embedding_readout": {
+        "ari": 0.19559433715157667,
+        "nmi": 0.33883030340422104,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151669",
+      "n_classes": 5,
+      "model": "CellPLM-20231027_85M",
+      "embedding_readout": {
+        "ari": 0.058802319185737875,
+        "nmi": 0.1163248915274794,
+        "n_pred_domains": 5
+      }
+    },
+    {
+      "sample_id": "151670",
+      "n_classes": 5,
+      "model": "CellPLM-20231027_85M",
+      "embedding_readout": {
+        "ari": 0.11274352619943913,
+        "nmi": 0.1953408373026141,
+        "n_pred_domains": 5
+      }
+    },
+    {
+      "sample_id": "151671",
+      "n_classes": 5,
+      "model": "CellPLM-20231027_85M",
+      "embedding_readout": {
+        "ari": 0.17578945624847567,
+        "nmi": 0.25729154086957284,
+        "n_pred_domains": 5
+      }
+    },
+    {
+      "sample_id": "151672",
+      "n_classes": 5,
+      "model": "CellPLM-20231027_85M",
+      "embedding_readout": {
+        "ari": 0.17266608122157273,
+        "nmi": 0.26250325623833254,
+        "n_pred_domains": 5
+      }
+    },
+    {
+      "sample_id": "151673",
+      "n_classes": 7,
+      "model": "CellPLM-20231027_85M",
+      "embedding_readout": {
+        "ari": 0.24794269634266206,
+        "nmi": 0.4106829092752776,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151674",
+      "n_classes": 7,
+      "model": "CellPLM-20231027_85M",
+      "embedding_readout": {
+        "ari": 0.19293637623990015,
+        "nmi": 0.34296449222067793,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151675",
+      "n_classes": 7,
+      "model": "CellPLM-20231027_85M",
+      "embedding_readout": {
+        "ari": 0.2262372246925863,
+        "nmi": 0.37833502155041876,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151676",
+      "n_classes": 7,
+      "model": "CellPLM-20231027_85M",
+      "embedding_readout": {
+        "ari": 0.2192926928856668,
+        "nmi": 0.3760825406439038,
+        "n_pred_domains": 7
+      }
+    }
+  ]
+}

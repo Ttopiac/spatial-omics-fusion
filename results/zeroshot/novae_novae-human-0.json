@@ -1,0 +1,203 @@
+{
+  "method": "novae",
+  "tag": "novae_novae-human-0",
+  "n_slices": 12,
+  "summary": {
+    "kmeans": {
+      "ari_mean": 0.1711374937357172,
+      "ari_std": 0.03225492513481715,
+      "nmi_mean": 0.23851477707607163,
+      "nmi_std": 0.024993797088865625,
+      "n_slices": 12
+    },
+    "native": {
+      "ari_mean": 0.18407829686089694,
+      "ari_std": 0.05432842633964438,
+      "nmi_mean": 0.23768515077704008,
+      "nmi_std": 0.025747865249144856,
+      "n_slices": 12
+    }
+  },
+  "per_slice": [
+    {
+      "sample_id": "151507",
+      "n_classes": 7,
+      "model": "prism-oncology/novae-human-0",
+      "kmeans": {
+        "ari": 0.18125696011246484,
+        "nmi": 0.25362529067606254,
+        "n_pred_domains": 7
+      },
+      "native": {
+        "ari": 0.19164274232364426,
+        "nmi": 0.23984836260899656,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151508",
+      "n_classes": 7,
+      "model": "prism-oncology/novae-human-0",
+      "kmeans": {
+        "ari": 0.16389942188853196,
+        "nmi": 0.21955326934706673,
+        "n_pred_domains": 7
+      },
+      "native": {
+        "ari": 0.23010473120022473,
+        "nmi": 0.2648025222262051,
+        "n_pred_domains": 8
+      }
+    },
+    {
+      "sample_id": "151509",
+      "n_classes": 7,
+      "model": "prism-oncology/novae-human-0",
+      "kmeans": {
+        "ari": 0.11776408582419405,
+        "nmi": 0.21792077817893496,
+        "n_pred_domains": 7
+      },
+      "native": {
+        "ari": 0.1416943532917856,
+        "nmi": 0.22359727658442635,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151510",
+      "n_classes": 7,
+      "model": "prism-oncology/novae-human-0",
+      "kmeans": {
+        "ari": 0.13425760757002209,
+        "nmi": 0.23140803176574656,
+        "n_pred_domains": 7
+      },
+      "native": {
+        "ari": 0.17192459397383558,
+        "nmi": 0.24831472545093505,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151669",
+      "n_classes": 5,
+      "model": "prism-oncology/novae-human-0",
+      "kmeans": {
+        "ari": 0.165430913975715,
+        "nmi": 0.19852126402117293,
+        "n_pred_domains": 5
+      },
+      "native": {
+        "ari": 0.16138124917527535,
+        "nmi": 0.18822464175817544,
+        "n_pred_domains": 6
+      }
+    },
+    {
+      "sample_id": "151670",
+      "n_classes": 5,
+      "model": "prism-oncology/novae-human-0",
+      "kmeans": {
+        "ari": 0.22675513818354923,
+        "nmi": 0.20788745722900456,
+        "n_pred_domains": 5
+      },
+      "native": {
+        "ari": 0.209508586467267,
+        "nmi": 0.20262040839895132,
+        "n_pred_domains": 6
+      }
+    },
+    {
+      "sample_id": "151671",
+      "n_classes": 5,
+      "model": "prism-oncology/novae-human-0",
+      "kmeans": {
+        "ari": 0.22938909940825522,
+        "nmi": 0.27717803791145096,
+        "n_pred_domains": 5
+      },
+      "native": {
+        "ari": 0.2953997356690649,
+        "nmi": 0.26846101575518166,
+        "n_pred_domains": 5
+      }
+    },
+    {
+      "sample_id": "151672",
+      "n_classes": 5,
+      "model": "prism-oncology/novae-human-0",
+      "kmeans": {
+        "ari": 0.1996743880293272,
+        "nmi": 0.2307744440109568,
+        "n_pred_domains": 5
+      },
+      "native": {
+        "ari": 0.26205770950961765,
+        "nmi": 0.21010466152370535,
+        "n_pred_domains": 5
+      }
+    },
+    {
+      "sample_id": "151673",
+      "n_classes": 7,
+      "model": "prism-oncology/novae-human-0",
+      "kmeans": {
+        "ari": 0.16924967546078565,
+        "nmi": 0.26801136871660053,
+        "n_pred_domains": 7
+      },
+      "native": {
+        "ari": 0.13314194222323905,
+        "nmi": 0.27232736987326756,
+        "n_pred_domains": 8
+      }
+    },
+    {
+      "sample_id": "151674",
+      "n_classes": 7,
+      "model": "prism-oncology/novae-human-0",
+      "kmeans": {
+        "ari": 0.1580261656949357,
+        "nmi": 0.2283363677653734,
+        "n_pred_domains": 7
+      },
+      "native": {
+        "ari": 0.16291954374868267,
+        "nmi": 0.23639415050983797,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151675",
+      "n_classes": 7,
+      "model": "prism-oncology/novae-human-0",
+      "kmeans": {
+        "ari": 0.1506015375802273,
+        "nmi": 0.2675975683266009,
+        "n_pred_domains": 7
+      },
+      "native": {
+        "ari": 0.09681274410114891,
+        "nmi": 0.24272075594844955,
+        "n_pred_domains": 8
+      }
+    },
+    {
+      "sample_id": "151676",
+      "n_classes": 7,
+      "model": "prism-oncology/novae-human-0",
+      "kmeans": {
+        "ari": 0.15734493110059825,
+        "nmi": 0.26136344696388913,
+        "n_pred_domains": 7
+      },
+      "native": {
+        "ari": 0.15235163064697788,
+        "nmi": 0.25480591868634894,
+        "n_pred_domains": 7
+      }
+    }
+  ]
+}

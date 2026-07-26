@@ -44,6 +44,8 @@ This is **not a verdict on foundation models in general** — only on these two,
 
 > Full ablation tables (16+ variants × 12 slices), all foundation-model variants, and the GAT/GCN KNN sweeps live in **[docs/RESULTS.md](docs/RESULTS.md)**.
 
+> Testing that "spatially-pretrained model" hypothesis is in progress. DLPFC is annotated and ready for Novae, scGPT-spatial, Nicheformer, CellPLM, UCE, and scFoundation. It turns out "spatially pretrained" does not imply "can read Visium" — two of these have no Visium code path at all. See **[docs/FM_INPUT_SPECS.md](docs/FM_INPUT_SPECS.md)**.
+
 ## Why the Simple Model Wins
 
 ### What each encoder actually represents

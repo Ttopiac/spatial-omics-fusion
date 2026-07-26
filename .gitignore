@@ -16,10 +16,15 @@ env/
 data/raw/
 data/processed/
 data/processed_*/
+data/fm_inputs/
 
 # Results, checkpoints, and model weights
 results/**
 !results/.gitkeep
+# Zero-shot benchmark scores are small JSON and are the comparison baseline
+# other machines need — keep them tracked.
+!results/zeroshot/
+!results/zeroshot/*.json
 checkpoints/
 *.pt
 *.pth

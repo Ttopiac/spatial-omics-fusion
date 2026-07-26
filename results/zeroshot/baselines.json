@@ -1,0 +1,258 @@
+{
+  "method": "baselines",
+  "tag": "baselines",
+  "n_slices": 12,
+  "summary": {
+    "pca_kmeans": {
+      "ari_mean": 0.22750202760576346,
+      "ari_std": 0.02130750108886666,
+      "nmi_mean": 0.3344678105429349,
+      "nmi_std": 0.03804222560878043,
+      "n_slices": 12
+    },
+    "spatial_smooth_1hop": {
+      "ari_mean": 0.29715669847758513,
+      "ari_std": 0.04035799764832312,
+      "nmi_mean": 0.4517441672977432,
+      "nmi_std": 0.03225931832018186,
+      "n_slices": 12
+    },
+    "spatial_smooth_2hop": {
+      "ari_mean": 0.306527005733993,
+      "ari_std": 0.04308568979406901,
+      "nmi_mean": 0.4662482402927641,
+      "nmi_std": 0.03572258448381296,
+      "n_slices": 12
+    }
+  },
+  "per_slice": [
+    {
+      "sample_id": "151507",
+      "n_classes": 7,
+      "pca_kmeans": {
+        "ari": 0.24976089091332565,
+        "nmi": 0.3936695101054186,
+        "n_pred_domains": 7
+      },
+      "spatial_smooth_1hop": {
+        "ari": 0.31652139197160445,
+        "nmi": 0.495494816430377,
+        "n_pred_domains": 7
+      },
+      "spatial_smooth_2hop": {
+        "ari": 0.3262137925506199,
+        "nmi": 0.5103360888497501,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151508",
+      "n_classes": 7,
+      "pca_kmeans": {
+        "ari": 0.23960334360857122,
+        "nmi": 0.32876379523950544,
+        "n_pred_domains": 7
+      },
+      "spatial_smooth_1hop": {
+        "ari": 0.2996013791134211,
+        "nmi": 0.4574311629555516,
+        "n_pred_domains": 7
+      },
+      "spatial_smooth_2hop": {
+        "ari": 0.3049126886591388,
+        "nmi": 0.47389212033812994,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151509",
+      "n_classes": 7,
+      "pca_kmeans": {
+        "ari": 0.24237682387715828,
+        "nmi": 0.38411449233578865,
+        "n_pred_domains": 7
+      },
+      "spatial_smooth_1hop": {
+        "ari": 0.2915605869124072,
+        "nmi": 0.4702225631950579,
+        "n_pred_domains": 7
+      },
+      "spatial_smooth_2hop": {
+        "ari": 0.29801126089475716,
+        "nmi": 0.47663517271331296,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151510",
+      "n_classes": 7,
+      "pca_kmeans": {
+        "ari": 0.21073579938860806,
+        "nmi": 0.3485760115033332,
+        "n_pred_domains": 7
+      },
+      "spatial_smooth_1hop": {
+        "ari": 0.2796587961378903,
+        "nmi": 0.4510507650521808,
+        "n_pred_domains": 7
+      },
+      "spatial_smooth_2hop": {
+        "ari": 0.28846319253171615,
+        "nmi": 0.46651673937470217,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151669",
+      "n_classes": 5,
+      "pca_kmeans": {
+        "ari": 0.2147160864781789,
+        "nmi": 0.2873108479389627,
+        "n_pred_domains": 5
+      },
+      "spatial_smooth_1hop": {
+        "ari": 0.23705207125567357,
+        "nmi": 0.36007832649189464,
+        "n_pred_domains": 5
+      },
+      "spatial_smooth_2hop": {
+        "ari": 0.2467369365985845,
+        "nmi": 0.3741849689933918,
+        "n_pred_domains": 5
+      }
+    },
+    {
+      "sample_id": "151670",
+      "n_classes": 5,
+      "pca_kmeans": {
+        "ari": 0.2081214329185515,
+        "nmi": 0.26773458401779754,
+        "n_pred_domains": 5
+      },
+      "spatial_smooth_1hop": {
+        "ari": 0.295331066325573,
+        "nmi": 0.45379607108914627,
+        "n_pred_domains": 5
+      },
+      "spatial_smooth_2hop": {
+        "ari": 0.32885279460778605,
+        "nmi": 0.4840584155400373,
+        "n_pred_domains": 5
+      }
+    },
+    {
+      "sample_id": "151671",
+      "n_classes": 5,
+      "pca_kmeans": {
+        "ari": 0.27040619369256214,
+        "nmi": 0.3223063878848362,
+        "n_pred_domains": 5
+      },
+      "spatial_smooth_1hop": {
+        "ari": 0.3537079860036746,
+        "nmi": 0.4509264511015201,
+        "n_pred_domains": 5
+      },
+      "spatial_smooth_2hop": {
+        "ari": 0.36035174852607127,
+        "nmi": 0.462859500277366,
+        "n_pred_domains": 5
+      }
+    },
+    {
+      "sample_id": "151672",
+      "n_classes": 5,
+      "pca_kmeans": {
+        "ari": 0.24864913672567215,
+        "nmi": 0.2793571619820688,
+        "n_pred_domains": 5
+      },
+      "spatial_smooth_1hop": {
+        "ari": 0.39341953178421163,
+        "nmi": 0.48195163980599626,
+        "n_pred_domains": 5
+      },
+      "spatial_smooth_2hop": {
+        "ari": 0.41101004779804584,
+        "nmi": 0.5218032266358363,
+        "n_pred_domains": 5
+      }
+    },
+    {
+      "sample_id": "151673",
+      "n_classes": 7,
+      "pca_kmeans": {
+        "ari": 0.2056105167365788,
+        "nmi": 0.3590565402870337,
+        "n_pred_domains": 7
+      },
+      "spatial_smooth_1hop": {
+        "ari": 0.2869435947556579,
+        "nmi": 0.46856350563255134,
+        "n_pred_domains": 7
+      },
+      "spatial_smooth_2hop": {
+        "ari": 0.292873954067784,
+        "nmi": 0.4749722473302439,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151674",
+      "n_classes": 7,
+      "pca_kmeans": {
+        "ari": 0.22740663927556898,
+        "nmi": 0.3421636875464582,
+        "n_pred_domains": 7
+      },
+      "spatial_smooth_1hop": {
+        "ari": 0.25326518821610916,
+        "nmi": 0.4273703381613295,
+        "n_pred_domains": 7
+      },
+      "spatial_smooth_2hop": {
+        "ari": 0.2638297482472169,
+        "nmi": 0.434433492454523,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151675",
+      "n_classes": 7,
+      "pca_kmeans": {
+        "ari": 0.21339276252257783,
+        "nmi": 0.3586238587268158,
+        "n_pred_domains": 7
+      },
+      "spatial_smooth_1hop": {
+        "ari": 0.2728684187892793,
+        "nmi": 0.4531279123083268,
+        "n_pred_domains": 7
+      },
+      "spatial_smooth_2hop": {
+        "ari": 0.28197917953072876,
+        "nmi": 0.4638098687444227,
+        "n_pred_domains": 7
+      }
+    },
+    {
+      "sample_id": "151676",
+      "n_classes": 7,
+      "pca_kmeans": {
+        "ari": 0.19924470513180792,
+        "nmi": 0.34193684894719983,
+        "n_pred_domains": 7
+      },
+      "spatial_smooth_1hop": {
+        "ari": 0.2859503704655193,
+        "nmi": 0.4509164553489852,
+        "n_pred_domains": 7
+      },
+      "spatial_smooth_2hop": {
+        "ari": 0.2750887247954671,
+        "nmi": 0.45147704226145363,
+        "n_pred_domains": 7
+      }
+    }
+  ]
+}
